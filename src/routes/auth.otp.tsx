@@ -1,12 +1,19 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { MobileFrame, TopBar } from "@/components/payro/Frame";
-import { createMockOtp, getPendingPhone, getStoredSession, persistSession } from "@/lib/auth-store";
+import { getPendingPhone, getStoredSession } from "@/lib/auth-store";
+import { sendOtp, verifyOtp } from "@/lib/supabase-auth";
+
+const RESEND_SECONDS = 60;
 
 export const Route = createFileRoute("/auth/otp")({
+  ssr: false,
   beforeLoad: () => {
     if (getStoredSession()) {
       throw redirect({ to: "/home" });
+    }
+    if (!getPendingPhone()) {
+      throw redirect({ to: "/auth" });
     }
   },
   component: Otp,
@@ -14,15 +21,51 @@ export const Route = createFileRoute("/auth/otp")({
 
 function Otp() {
   const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [verifying, setVerifying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resendIn, setResendIn] = useState(RESEND_SECONDS);
   const nav = useNavigate();
   const refs = useRef<(HTMLInputElement | null)[]>([]);
+  const pendingPhone = getPendingPhone() ?? "";
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
+
+  const handleComplete = async (digits = code) => {
+    if (verifying) return;
+    setVerifying(true);
+    setError(null);
+    try {
+      await verifyOtp(digits.join(""));
+      nav({ to: "/home" });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Invalid code");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (resendIn > 0) return;
+    setError(null);
+    try {
+      await sendOtp(pendingPhone);
+      setResendIn(RESEND_SECONDS);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not resend code");
+    }
+  };
+
   const setDigit = (i: number, v: string) => {
     if (!/^\d?$/.test(v)) return;
     const n = [...code];
     n[i] = v;
     setCode(n);
     if (v && i < 5) refs.current[i + 1]?.focus();
-    if (n.every((d) => d) && i === 5) setTimeout(() => nav({ to: "/home" }), 300);
+    if (n.every((d) => d) && i === 5) handleComplete(n);
   };
   return (
     <MobileFrame showNav={false}>
@@ -55,15 +98,21 @@ function Otp() {
           ))}
         </div>
 
-        <button className="mt-6 text-sm text-muted-foreground">
-          Didn't get it? <span className="text-primary font-semibold">Resend in 42s</span>
+        {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
+
+        <button onClick={handleResend} className="mt-6 text-sm text-muted-foreground">
+          Didn't get it?{" "}
+          <span className="text-primary font-semibold">
+            {resendIn > 0 ? `Resend in ${resendIn}s` : "Resend code"}
+          </span>
         </button>
 
         <button
-          onClick={handleComplete}
-          className="mt-10 w-full h-14 rounded-2xl payro-gradient text-white font-semibold shadow-glow active:scale-[0.99] transition"
+          onClick={() => handleComplete()}
+          disabled={verifying || code.some((d) => !d)}
+          className="mt-10 w-full h-14 rounded-2xl payro-gradient text-white font-semibold shadow-glow active:scale-[0.99] transition disabled:opacity-60"
         >
-          Verify & Continue
+          {verifying ? "Verifying…" : "Verify & Continue"}
         </button>
 
         <div className="mt-8 rounded-2xl bg-surface p-4 border border-border">

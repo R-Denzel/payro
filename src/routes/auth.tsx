@@ -2,8 +2,11 @@ import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-ro
 import { useState } from "react";
 import { MobileFrame, PayroLogo } from "@/components/payro/Frame";
 import { getStoredSession, setPendingPhone } from "@/lib/auth-store";
+import { sendOtp } from "@/lib/supabase-auth";
 
 export const Route = createFileRoute("/auth")({
+  // Session lives in browser storage, so gate on the client only.
+  ssr: false,
   beforeLoad: () => {
     if (getStoredSession()) {
       throw redirect({ to: "/home" });
@@ -14,11 +17,22 @@ export const Route = createFileRoute("/auth")({
 
 function Auth() {
   const [phone, setPhone] = useState("712 345 678");
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const nav = useNavigate();
-  const handleContinue = () => {
-    const normalized = `+254${phone.replace(/\D/g, "")}`;
-    setPendingPhone(normalized);
-    nav({ to: "/auth/otp" });
+  const handleContinue = async () => {
+    const normalized = `+254${phone.replace(/\D/g, "").replace(/^0/, "")}`;
+    setSending(true);
+    setError(null);
+    try {
+      await sendOtp(normalized);
+      setPendingPhone(normalized);
+      nav({ to: "/auth/otp" });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not send code");
+    } finally {
+      setSending(false);
+    }
   };
   return (
     <MobileFrame showNav={false}>
@@ -49,11 +63,14 @@ function Auth() {
           </div>
         </div>
 
+        {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
+
         <button
           onClick={handleContinue}
-          className="mt-6 w-full h-14 rounded-2xl payro-gradient text-white font-semibold shadow-glow active:scale-[0.99] transition"
+          disabled={sending}
+          className="mt-6 w-full h-14 rounded-2xl payro-gradient text-white font-semibold shadow-glow active:scale-[0.99] transition disabled:opacity-60"
         >
-          Send OTP
+          {sending ? "Sending…" : "Send OTP"}
         </button>
 
         <div className="mt-8 flex items-center gap-3">

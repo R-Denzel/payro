@@ -25,7 +25,7 @@ describe("auth-store", () => {
       phone: "+254712345678",
       country: "Kenya",
       currency: "KES",
-      isAuthenticated: true,
+      isAuthenticated: true as const,
     };
 
     persistSession(session);

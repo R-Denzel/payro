@@ -109,7 +109,7 @@ function BottomNav() {
           {item("/groups", Users, "Groups")}
           <div className="flex-1 flex justify-center">
             <Link
-              to="/pay"
+              to="/expense/new"
               className="-mt-8 h-16 w-16 rounded-2xl payro-gradient shadow-glow flex items-center justify-center text-white active:scale-95 transition"
             >
               <Plus className="h-7 w-7" strokeWidth={2.5} />

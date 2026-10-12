@@ -21,8 +21,10 @@ import { Route as PayRouteImport } from './routes/pay'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as QrRouteImport } from './routes/qr'
 import { Route as ScanRouteImport } from './routes/scan'
+import { Route as SetupRouteImport } from './routes/setup'
 import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as AuthOtpRouteImport } from './routes/auth.otp'
+import { Route as ExpenseIdRouteImport } from './routes/expense.$id'
 import { Route as ExpenseNewRouteImport } from './routes/expense.new'
 import { Route as GroupsIdRouteImport } from './routes/groups.$id'
 
@@ -86,6 +88,11 @@ const ScanRoute = ScanRouteImport.update({
   path: '/scan',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
@@ -95,6 +102,11 @@ const AuthOtpRoute = AuthOtpRouteImport.update({
   id: '/otp',
   path: '/otp',
   getParentRoute: () => AuthRoute,
+} as any)
+const ExpenseIdRoute = ExpenseIdRouteImport.update({
+  id: '/expense/$id',
+  path: '/expense/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ExpenseNewRoute = ExpenseNewRouteImport.update({
   id: '/expense/new',
@@ -120,8 +132,10 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/qr': typeof QrRoute
   '/scan': typeof ScanRoute
+  '/setup': typeof SetupRoute
   '/wallet': typeof WalletRoute
   '/auth/otp': typeof AuthOtpRoute
+  '/expense/$id': typeof ExpenseIdRoute
   '/expense/new': typeof ExpenseNewRoute
   '/groups/$id': typeof GroupsIdRoute
 }
@@ -138,8 +152,10 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/qr': typeof QrRoute
   '/scan': typeof ScanRoute
+  '/setup': typeof SetupRoute
   '/wallet': typeof WalletRoute
   '/auth/otp': typeof AuthOtpRoute
+  '/expense/$id': typeof ExpenseIdRoute
   '/expense/new': typeof ExpenseNewRoute
   '/groups/$id': typeof GroupsIdRoute
 }
@@ -157,8 +173,10 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/qr': typeof QrRoute
   '/scan': typeof ScanRoute
+  '/setup': typeof SetupRoute
   '/wallet': typeof WalletRoute
   '/auth/otp': typeof AuthOtpRoute
+  '/expense/$id': typeof ExpenseIdRoute
   '/expense/new': typeof ExpenseNewRoute
   '/groups/$id': typeof GroupsIdRoute
 }
@@ -177,8 +195,10 @@ export interface FileRouteTypes {
     | '/profile'
     | '/qr'
     | '/scan'
+    | '/setup'
     | '/wallet'
     | '/auth/otp'
+    | '/expense/$id'
     | '/expense/new'
     | '/groups/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -195,8 +215,10 @@ export interface FileRouteTypes {
     | '/profile'
     | '/qr'
     | '/scan'
+    | '/setup'
     | '/wallet'
     | '/auth/otp'
+    | '/expense/$id'
     | '/expense/new'
     | '/groups/$id'
   id:
@@ -213,8 +235,10 @@ export interface FileRouteTypes {
     | '/profile'
     | '/qr'
     | '/scan'
+    | '/setup'
     | '/wallet'
     | '/auth/otp'
+    | '/expense/$id'
     | '/expense/new'
     | '/groups/$id'
   fileRoutesById: FileRoutesById
@@ -232,7 +256,9 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   QrRoute: typeof QrRoute
   ScanRoute: typeof ScanRoute
+  SetupRoute: typeof SetupRoute
   WalletRoute: typeof WalletRoute
+  ExpenseIdRoute: typeof ExpenseIdRoute
   ExpenseNewRoute: typeof ExpenseNewRoute
 }
 
@@ -322,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScanRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/wallet': {
       id: '/wallet'
       path: '/wallet'
@@ -335,6 +368,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/otp'
       preLoaderRoute: typeof AuthOtpRouteImport
       parentRoute: typeof AuthRoute
+    }
+    '/expense/$id': {
+      id: '/expense/$id'
+      path: '/expense/$id'
+      fullPath: '/expense/$id'
+      preLoaderRoute: typeof ExpenseIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/expense/new': {
       id: '/expense/new'
@@ -387,7 +427,9 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   QrRoute: QrRoute,
   ScanRoute: ScanRoute,
+  SetupRoute: SetupRoute,
   WalletRoute: WalletRoute,
+  ExpenseIdRoute: ExpenseIdRoute,
   ExpenseNewRoute: ExpenseNewRoute,
 }
 export const routeTree = rootRouteImport
