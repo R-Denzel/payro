@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MobileFrame, TopBar } from "@/components/payro/Frame";
 import { EmptyState, ErrorNote, Loading } from "@/components/payro/States";
-import { Bell, Check, Users, Zap, Receipt } from "lucide-react";
+import { Bell, Check, Users, Zap, Receipt, HandCoins } from "lucide-react";
 import { useMarkAllNotificationsRead, useNotifications, type Notification } from "@/lib/data";
 import { relativeDay, timeOfDay } from "@/lib/money";
 import { requireProfileComplete } from "@/lib/route-guards";
@@ -17,6 +17,7 @@ const STYLE: Record<string, { icon: typeof Bell; tint: string }> = {
   expense_added: { icon: Receipt, tint: "bg-violet-100 text-violet-700" },
   payment_received: { icon: Zap, tint: "bg-emerald-100 text-primary" },
   payment_confirmed: { icon: Check, tint: "bg-emerald-100 text-primary" },
+  payment_reported: { icon: HandCoins, tint: "bg-emerald-100 text-primary" },
 };
 
 function NotificationRow({ n }: { n: Notification }) {

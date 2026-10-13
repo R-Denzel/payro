@@ -1,7 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { MobileFrame, TopBar } from "@/components/payro/Frame";
 import { Avatar, ErrorNote, FieldError, Loading } from "@/components/payro/States";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
+import {
+  MpesaNumberPrompt,
+  ShareRequestPanel,
+  usePayoutNumber,
+} from "@/components/payro/RequestMoney";
 import {
   currentUserId,
   outstanding,
@@ -9,6 +15,7 @@ import {
   personName,
   useExpense,
   useReceiptUrl,
+  useCreatePaymentRequest,
   useRecordPayment,
 } from "@/lib/data";
 import { formatMoney, relativeDay, timeOfDay } from "@/lib/money";
@@ -26,6 +33,14 @@ function ExpenseDetail() {
   const expense = useExpense(id);
   const receipt = useReceiptUrl(expense.data?.receipt_url ?? null);
   const record = useRecordPayment();
+  const createRequest = useCreatePaymentRequest();
+  const payout = usePayoutNumber();
+  const [sheet, setSheet] = useState<{
+    token: string;
+    name: string;
+    amount: number;
+    phone: string | null;
+  } | null>(null);
 
   if (expense.isLoading)
     return (
@@ -47,6 +62,9 @@ function ExpenseDetail() {
   const e = expense.data;
   const iAmCreator = e.creator_id === me;
   const paidBy = iAmCreator ? "You" : (personName(e.creator) ?? "Someone");
+  const unpaidOthers = e.expense_participants.filter(
+    (p) => p.user_id !== e.creator_id && outstanding(p) > 0,
+  );
   const nameOf = (participantId: string) => {
     const p = e.expense_participants.find((x) => x.id === participantId);
     return p ? participantName(p, me) : "?";
@@ -81,6 +99,11 @@ function ExpenseDetail() {
         <p className="mt-6 mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Who owes what
         </p>
+        {iAmCreator && unpaidOthers.length > 0 && !payout.isLoading && !payout.number && (
+          <div className="mb-3">
+            <MpesaNumberPrompt />
+          </div>
+        )}
         <div className="space-y-2">
           {e.expense_participants.map((p) => {
             const left = outstanding(p);
@@ -120,13 +143,29 @@ function ExpenseDetail() {
                         Pay my share
                       </Link>
                     ) : (
-                      <button
-                        onClick={() => record.mutate({ participantId: p.id, provider: "cash" })}
-                        disabled={record.isPending}
-                        className="text-[11px] font-semibold text-primary disabled:opacity-50"
-                      >
-                        Mark as paid
-                      </button>
+                      <div className="flex items-center justify-end gap-3">
+                        <button
+                          onClick={() => record.mutate({ participantId: p.id, provider: "cash" })}
+                          disabled={record.isPending}
+                          className="text-[11px] font-semibold text-muted-foreground disabled:opacity-50"
+                        >
+                          Mark paid
+                        </button>
+                        <button
+                          onClick={() =>
+                            createRequest.mutate(p.id, {
+                              onSuccess: (token) =>
+                                setSheet({ token, name, amount: left, phone: p.guest_phone }),
+                            })
+                          }
+                          disabled={createRequest.isPending || !payout.number}
+                          className="text-[11px] font-semibold text-primary disabled:opacity-50"
+                        >
+                          {createRequest.isPending && createRequest.variables === p.id
+                            ? "…"
+                            : "Request"}
+                        </button>
+                      </div>
                     ))}
                   {left === 0 && !isCreatorRow && (
                     <p className="text-[11px] font-semibold text-success">✓ Paid</p>
@@ -136,7 +175,7 @@ function ExpenseDetail() {
             );
           })}
         </div>
-        <FieldError error={record.error} />
+        <FieldError error={record.error ?? createRequest.error} />
 
         {e.expense_items.length > 0 && (
           <>
@@ -192,6 +231,37 @@ function ExpenseDetail() {
           </a>
         )}
       </div>
+
+      {sheet && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-end lg:items-center justify-center animate-fade-in"
+          onClick={() => setSheet(null)}
+        >
+          <div
+            onClick={(ev) => ev.stopPropagation()}
+            className="w-full max-w-[520px] rounded-t-3xl lg:rounded-3xl bg-white p-6 pb-[calc(env(safe-area-inset-bottom)_+_1.5rem)]"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-navy">Request from {sheet.name}</h2>
+              <button
+                onClick={() => setSheet(null)}
+                aria-label="Close"
+                className="h-9 w-9 rounded-full bg-surface flex items-center justify-center"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <ShareRequestPanel
+              token={sheet.token}
+              name={sheet.name}
+              amountCents={sheet.amount}
+              currency={e.currency}
+              reason={e.merchant}
+              phone={sheet.phone}
+            />
+          </div>
+        </div>
+      )}
     </MobileFrame>
   );
 }

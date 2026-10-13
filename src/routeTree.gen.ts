@@ -20,6 +20,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PayRouteImport } from './routes/pay'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as QrRouteImport } from './routes/qr'
+import { Route as RequestRouteImport } from './routes/request'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as WalletRouteImport } from './routes/wallet'
@@ -28,6 +29,7 @@ import { Route as AuthOtpRouteImport } from './routes/auth_.otp'
 import { Route as ExpenseIdRouteImport } from './routes/expense.$id'
 import { Route as ExpenseNewRouteImport } from './routes/expense.new'
 import { Route as GroupsIdRouteImport } from './routes/groups.$id'
+import { Route as RTokenRouteImport } from './routes/r.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -84,6 +86,11 @@ const QrRoute = QrRouteImport.update({
   path: '/qr',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RequestRoute = RequestRouteImport.update({
+  id: '/request',
+  path: '/request',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScanRoute = ScanRouteImport.update({
   id: '/scan',
   path: '/scan',
@@ -124,6 +131,11 @@ const GroupsIdRoute = GroupsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => GroupsRoute,
 } as any)
+const RTokenRoute = RTokenRouteImport.update({
+  id: '/r/$token',
+  path: '/r/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -137,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/pay': typeof PayRoute
   '/profile': typeof ProfileRoute
   '/qr': typeof QrRoute
+  '/request': typeof RequestRoute
   '/scan': typeof ScanRoute
   '/setup': typeof SetupRoute
   '/wallet': typeof WalletRoute
@@ -145,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/expense/$id': typeof ExpenseIdRoute
   '/expense/new': typeof ExpenseNewRoute
   '/groups/$id': typeof GroupsIdRoute
+  '/r/$token': typeof RTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -158,6 +172,7 @@ export interface FileRoutesByTo {
   '/pay': typeof PayRoute
   '/profile': typeof ProfileRoute
   '/qr': typeof QrRoute
+  '/request': typeof RequestRoute
   '/scan': typeof ScanRoute
   '/setup': typeof SetupRoute
   '/wallet': typeof WalletRoute
@@ -166,6 +181,7 @@ export interface FileRoutesByTo {
   '/expense/$id': typeof ExpenseIdRoute
   '/expense/new': typeof ExpenseNewRoute
   '/groups/$id': typeof GroupsIdRoute
+  '/r/$token': typeof RTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -180,6 +196,7 @@ export interface FileRoutesById {
   '/pay': typeof PayRoute
   '/profile': typeof ProfileRoute
   '/qr': typeof QrRoute
+  '/request': typeof RequestRoute
   '/scan': typeof ScanRoute
   '/setup': typeof SetupRoute
   '/wallet': typeof WalletRoute
@@ -188,6 +205,7 @@ export interface FileRoutesById {
   '/expense/$id': typeof ExpenseIdRoute
   '/expense/new': typeof ExpenseNewRoute
   '/groups/$id': typeof GroupsIdRoute
+  '/r/$token': typeof RTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -203,6 +221,7 @@ export interface FileRouteTypes {
     | '/pay'
     | '/profile'
     | '/qr'
+    | '/request'
     | '/scan'
     | '/setup'
     | '/wallet'
@@ -211,6 +230,7 @@ export interface FileRouteTypes {
     | '/expense/$id'
     | '/expense/new'
     | '/groups/$id'
+    | '/r/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -224,6 +244,7 @@ export interface FileRouteTypes {
     | '/pay'
     | '/profile'
     | '/qr'
+    | '/request'
     | '/scan'
     | '/setup'
     | '/wallet'
@@ -232,6 +253,7 @@ export interface FileRouteTypes {
     | '/expense/$id'
     | '/expense/new'
     | '/groups/$id'
+    | '/r/$token'
   id:
     | '__root__'
     | '/'
@@ -245,6 +267,7 @@ export interface FileRouteTypes {
     | '/pay'
     | '/profile'
     | '/qr'
+    | '/request'
     | '/scan'
     | '/setup'
     | '/wallet'
@@ -253,6 +276,7 @@ export interface FileRouteTypes {
     | '/expense/$id'
     | '/expense/new'
     | '/groups/$id'
+    | '/r/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -267,6 +291,7 @@ export interface RootRouteChildren {
   PayRoute: typeof PayRoute
   ProfileRoute: typeof ProfileRoute
   QrRoute: typeof QrRoute
+  RequestRoute: typeof RequestRoute
   ScanRoute: typeof ScanRoute
   SetupRoute: typeof SetupRoute
   WalletRoute: typeof WalletRoute
@@ -274,6 +299,7 @@ export interface RootRouteChildren {
   AuthOtpRoute: typeof AuthOtpRoute
   ExpenseIdRoute: typeof ExpenseIdRoute
   ExpenseNewRoute: typeof ExpenseNewRoute
+  RTokenRoute: typeof RTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -355,6 +381,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QrRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/request': {
+      id: '/request'
+      path: '/request'
+      fullPath: '/request'
+      preLoaderRoute: typeof RequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scan': {
       id: '/scan'
       path: '/scan'
@@ -411,6 +444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GroupsIdRouteImport
       parentRoute: typeof GroupsRoute
     }
+    '/r/$token': {
+      id: '/r/$token'
+      path: '/r/$token'
+      fullPath: '/r/$token'
+      preLoaderRoute: typeof RTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -437,6 +477,7 @@ const rootRouteChildren: RootRouteChildren = {
   PayRoute: PayRoute,
   ProfileRoute: ProfileRoute,
   QrRoute: QrRoute,
+  RequestRoute: RequestRoute,
   ScanRoute: ScanRoute,
   SetupRoute: SetupRoute,
   WalletRoute: WalletRoute,
@@ -444,6 +485,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthOtpRoute: AuthOtpRoute,
   ExpenseIdRoute: ExpenseIdRoute,
   ExpenseNewRoute: ExpenseNewRoute,
+  RTokenRoute: RTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

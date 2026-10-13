@@ -10,6 +10,7 @@ export type Profile = {
   id: string;
   full_name: string;
   phone: string | null;
+  mpesa_number: string | null;
   avatar_url: string | null;
   country: string;
   currency: string;
@@ -311,14 +312,13 @@ function useInvalidateAll() {
 export function useUpdateProfile() {
   const invalidate = useInvalidateAll();
   return useMutation({
-    mutationFn: async (input: { full_name: string }) => {
+    mutationFn: async (input: { full_name?: string; mpesa_number?: string | null }) => {
+      const changes = {
+        ...(input.full_name !== undefined && { full_name: input.full_name.trim() }),
+        ...(input.mpesa_number !== undefined && { mpesa_number: input.mpesa_number }),
+      };
       const profile = unwrap<Profile>(
-        await db()
-          .from("profiles")
-          .update({ full_name: input.full_name.trim() })
-          .eq("id", currentUserId())
-          .select("*")
-          .single(),
+        await db().from("profiles").update(changes).eq("id", currentUserId()).select("*").single(),
       );
       const session = getStoredSession();
       if (session) persistSession({ ...session, fullName: profile.full_name });
@@ -374,6 +374,7 @@ export type NewExpenseInput = {
   participants: {
     user_id: string | null;
     guest_name: string | null;
+    guest_phone?: string | null;
     share_weight: number;
     amount_due_cents: number;
     item_indexes: number[];
@@ -414,6 +415,86 @@ export function useRecordPayment() {
       ),
     onSuccess: invalidate,
   });
+}
+
+// Returns the pay-link token for one person's share (reused while it's still valid).
+export function useCreatePaymentRequest() {
+  const invalidate = useInvalidateAll();
+  return useMutation({
+    mutationFn: async (participantId: string) =>
+      unwrap<string>(await db().rpc("create_payment_request", { _participant_id: participantId })),
+    onSuccess: invalidate,
+  });
+}
+
+// Quick request: records "they owe me X for Y" as a one-person expense, then makes its pay link.
+export function useRequestMoney() {
+  const invalidate = useInvalidateAll();
+  return useMutation({
+    mutationFn: async (input: {
+      name: string;
+      phone: string | null;
+      amountCents: number;
+      currency: string;
+      reason: string;
+    }) => {
+      const expenseId = unwrap<string>(
+        await db().rpc("create_expense", {
+          _expense: {
+            group_id: null,
+            merchant: input.reason,
+            category: "Other",
+            currency: input.currency,
+            subtotal_cents: input.amountCents,
+            service_cents: 0,
+            tax_cents: 0,
+            total_cents: input.amountCents,
+            split_mode: "custom",
+            receipt_url: null,
+          },
+          _items: [],
+          _participants: [
+            {
+              user_id: null,
+              guest_name: input.name,
+              guest_phone: input.phone,
+              share_weight: 1,
+              amount_due_cents: input.amountCents,
+              item_indexes: [],
+            },
+          ],
+        }),
+      );
+      const participant = unwrap<{ id: string }>(
+        await db().from("expense_participants").select("id").eq("expense_id", expenseId).single(),
+      );
+      const token = unwrap<string>(
+        await db().rpc("create_payment_request", { _participant_id: participant.id }),
+      );
+      return { expenseId, token };
+    },
+    onSuccess: invalidate,
+  });
+}
+
+export type PaymentRequest = {
+  requester: string;
+  mpesa_number: string | null;
+  payer: string;
+  amount_cents: number;
+  currency: string;
+  reason: string;
+  expired: boolean;
+  reported: boolean;
+};
+
+// Public: works without signing in (the person paying may not have an account).
+export async function fetchPaymentRequest(token: string): Promise<PaymentRequest | null> {
+  return unwrap<PaymentRequest | null>(await db().rpc("get_payment_request", { _token: token }));
+}
+
+export async function reportRequestPaid(token: string, mpesaRef: string): Promise<void> {
+  unwrap(await db().rpc("report_request_paid", { _token: token, _mpesa_ref: mpesaRef || null }));
 }
 
 export function useMarkAllNotificationsRead() {

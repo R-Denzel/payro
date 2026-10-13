@@ -6,7 +6,7 @@ import {
   Send,
   Plus,
   ScanLine,
-  QrCode,
+  HandCoins,
   ArrowUpRight,
   ArrowDownLeft,
   Receipt,
@@ -101,10 +101,10 @@ function Home() {
       {/* Quick actions */}
       <div className="px-5 mt-6 grid grid-cols-4 gap-3">
         {[
+          { icon: HandCoins, label: "Request", to: "/request" },
           { icon: Plus, label: "Split", to: "/expense/new" },
           { icon: ScanLine, label: "Scan", to: "/scan" },
           { icon: Send, label: "Settle", to: "/pay" },
-          { icon: QrCode, label: "My QR", to: "/qr" },
         ].map((a) => (
           <Link key={a.label} to={a.to} className="flex flex-col items-center gap-2 group">
             <div className="h-14 w-14 rounded-2xl bg-surface border border-black/5 flex items-center justify-center group-active:scale-95 transition">
