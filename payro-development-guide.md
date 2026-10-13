@@ -33,9 +33,9 @@ src/
 **Run locally**
 
 ```bash
-bun install      # or: npm install
-bun run dev      # http://localhost:8080
-bun run build
+npm install
+npm run dev      # http://localhost:8080
+npm run build
 ```
 
 Node 20+ recommended. The app targets an edge runtime (Cloudflare Workers) on build.
