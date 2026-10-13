@@ -89,7 +89,8 @@ export function getStoredSession(): AuthSession | null {
 
   try {
     const parsed = JSON.parse(raw) as Partial<AuthSession>;
-    if (!parsed.userId || !parsed.phone || parsed.isAuthenticated !== true) {
+    // phone may be empty: Google sign-ins have no phone number.
+    if (!parsed.userId || parsed.isAuthenticated !== true) {
       return null;
     }
 

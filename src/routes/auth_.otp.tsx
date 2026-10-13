@@ -6,7 +6,7 @@ import { sendOtp, verifyOtp } from "@/lib/supabase-auth";
 
 const RESEND_SECONDS = 60;
 
-export const Route = createFileRoute("/auth/otp")({
+export const Route = createFileRoute("/auth_/otp")({
   ssr: false,
   beforeLoad: () => {
     if (getStoredSession()) {

@@ -16,6 +16,8 @@ export function getSupabase(): SupabaseClient | null {
         persistSession: typeof window !== "undefined",
         autoRefreshToken: typeof window !== "undefined",
         detectSessionInUrl: false,
+        // OAuth (Google) returns ?code=… to /auth/callback, which exchanges it for a session.
+        flowType: "pkce",
       },
     });
   }

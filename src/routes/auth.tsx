@@ -2,7 +2,7 @@ import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-ro
 import { useState } from "react";
 import { MobileFrame, PayroLogo } from "@/components/payro/Frame";
 import { getStoredSession, setPendingPhone } from "@/lib/auth-store";
-import { sendOtp } from "@/lib/supabase-auth";
+import { sendOtp, signInWithGoogle } from "@/lib/supabase-auth";
 
 export const Route = createFileRoute("/auth")({
   // Session lives in browser storage, so gate on the client only.
@@ -36,6 +36,14 @@ function Auth() {
       setError(e instanceof Error ? e.message : "Could not send code");
     } finally {
       setSending(false);
+    }
+  };
+  const handleGoogle = async () => {
+    setError(null);
+    try {
+      await signInWithGoogle(); // navigates away to Google on success
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not start Google sign-in");
     }
   };
   return (
@@ -87,7 +95,10 @@ function Auth() {
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
-          <button className="h-14 rounded-2xl border border-border bg-white flex items-center justify-center gap-2 font-medium text-sm active:scale-[0.99]">
+          <button
+            onClick={handleGoogle}
+            className="h-14 rounded-2xl border border-border bg-white flex items-center justify-center gap-2 font-medium text-sm active:scale-[0.99]"
+          >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"

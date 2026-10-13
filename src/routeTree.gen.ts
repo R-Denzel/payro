@@ -23,7 +23,8 @@ import { Route as QrRouteImport } from './routes/qr'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as WalletRouteImport } from './routes/wallet'
-import { Route as AuthOtpRouteImport } from './routes/auth.otp'
+import { Route as AuthCallbackRouteImport } from './routes/auth_.callback'
+import { Route as AuthOtpRouteImport } from './routes/auth_.otp'
 import { Route as ExpenseIdRouteImport } from './routes/expense.$id'
 import { Route as ExpenseNewRouteImport } from './routes/expense.new'
 import { Route as GroupsIdRouteImport } from './routes/groups.$id'
@@ -98,10 +99,15 @@ const WalletRoute = WalletRouteImport.update({
   path: '/wallet',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth_/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthOtpRoute = AuthOtpRouteImport.update({
-  id: '/otp',
-  path: '/otp',
-  getParentRoute: () => AuthRoute,
+  id: '/auth_/otp',
+  path: '/auth/otp',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ExpenseIdRoute = ExpenseIdRouteImport.update({
   id: '/expense/$id',
@@ -123,7 +129,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
   '/analytics': typeof AnalyticsRoute
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/groups': typeof GroupsRouteWithChildren
   '/home': typeof HomeRoute
   '/notifications': typeof NotificationsRoute
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/scan': typeof ScanRoute
   '/setup': typeof SetupRoute
   '/wallet': typeof WalletRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/otp': typeof AuthOtpRoute
   '/expense/$id': typeof ExpenseIdRoute
   '/expense/new': typeof ExpenseNewRoute
@@ -143,7 +150,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
   '/analytics': typeof AnalyticsRoute
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/groups': typeof GroupsRouteWithChildren
   '/home': typeof HomeRoute
   '/notifications': typeof NotificationsRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/scan': typeof ScanRoute
   '/setup': typeof SetupRoute
   '/wallet': typeof WalletRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/auth/otp': typeof AuthOtpRoute
   '/expense/$id': typeof ExpenseIdRoute
   '/expense/new': typeof ExpenseNewRoute
@@ -164,7 +172,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/activity': typeof ActivityRoute
   '/analytics': typeof AnalyticsRoute
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/groups': typeof GroupsRouteWithChildren
   '/home': typeof HomeRoute
   '/notifications': typeof NotificationsRoute
@@ -175,7 +183,8 @@ export interface FileRoutesById {
   '/scan': typeof ScanRoute
   '/setup': typeof SetupRoute
   '/wallet': typeof WalletRoute
-  '/auth/otp': typeof AuthOtpRoute
+  '/auth_/callback': typeof AuthCallbackRoute
+  '/auth_/otp': typeof AuthOtpRoute
   '/expense/$id': typeof ExpenseIdRoute
   '/expense/new': typeof ExpenseNewRoute
   '/groups/$id': typeof GroupsIdRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/scan'
     | '/setup'
     | '/wallet'
+    | '/auth/callback'
     | '/auth/otp'
     | '/expense/$id'
     | '/expense/new'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/scan'
     | '/setup'
     | '/wallet'
+    | '/auth/callback'
     | '/auth/otp'
     | '/expense/$id'
     | '/expense/new'
@@ -237,7 +248,8 @@ export interface FileRouteTypes {
     | '/scan'
     | '/setup'
     | '/wallet'
-    | '/auth/otp'
+    | '/auth_/callback'
+    | '/auth_/otp'
     | '/expense/$id'
     | '/expense/new'
     | '/groups/$id'
@@ -247,7 +259,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActivityRoute: typeof ActivityRoute
   AnalyticsRoute: typeof AnalyticsRoute
-  AuthRoute: typeof AuthRouteWithChildren
+  AuthRoute: typeof AuthRoute
   GroupsRoute: typeof GroupsRouteWithChildren
   HomeRoute: typeof HomeRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -258,6 +270,8 @@ export interface RootRouteChildren {
   ScanRoute: typeof ScanRoute
   SetupRoute: typeof SetupRoute
   WalletRoute: typeof WalletRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthOtpRoute: typeof AuthOtpRoute
   ExpenseIdRoute: typeof ExpenseIdRoute
   ExpenseNewRoute: typeof ExpenseNewRoute
 }
@@ -362,12 +376,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WalletRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/otp': {
-      id: '/auth/otp'
-      path: '/otp'
+    '/auth_/callback': {
+      id: '/auth_/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth_/otp': {
+      id: '/auth_/otp'
+      path: '/auth/otp'
       fullPath: '/auth/otp'
       preLoaderRoute: typeof AuthOtpRouteImport
-      parentRoute: typeof AuthRoute
+      parentRoute: typeof rootRouteImport
     }
     '/expense/$id': {
       id: '/expense/$id'
@@ -393,16 +414,6 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthRouteChildren {
-  AuthOtpRoute: typeof AuthOtpRoute
-}
-
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthOtpRoute: AuthOtpRoute,
-}
-
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
-
 interface GroupsRouteChildren {
   GroupsIdRoute: typeof GroupsIdRoute
 }
@@ -418,7 +429,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
   AnalyticsRoute: AnalyticsRoute,
-  AuthRoute: AuthRouteWithChildren,
+  AuthRoute: AuthRoute,
   GroupsRoute: GroupsRouteWithChildren,
   HomeRoute: HomeRoute,
   NotificationsRoute: NotificationsRoute,
@@ -429,6 +440,8 @@ const rootRouteChildren: RootRouteChildren = {
   ScanRoute: ScanRoute,
   SetupRoute: SetupRoute,
   WalletRoute: WalletRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
+  AuthOtpRoute: AuthOtpRoute,
   ExpenseIdRoute: ExpenseIdRoute,
   ExpenseNewRoute: ExpenseNewRoute,
 }
