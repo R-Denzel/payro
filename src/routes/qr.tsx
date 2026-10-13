@@ -5,6 +5,7 @@ import { MobileFrame, TopBar, PayroLogo } from "@/components/payro/Frame";
 import { Check, Copy } from "lucide-react";
 import { useProfile } from "@/lib/data";
 import { requireProfileComplete } from "@/lib/route-guards";
+import { copyText } from "@/lib/utils";
 
 export const Route = createFileRoute("/qr")({
   ssr: false,
@@ -27,7 +28,7 @@ function QR() {
   }, [profile.data?.phone, phone]);
 
   const copy = async () => {
-    await navigator.clipboard.writeText(phone);
+    await copyText(phone);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };

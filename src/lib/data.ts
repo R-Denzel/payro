@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getStoredSession, persistSession } from "./auth-store";
 import { getSupabase } from "./supabase";
+import { uid } from "./utils";
 
 // ---------------------------------------------------------------------------
 // Types (mirror supabase/migrations)
@@ -432,7 +433,7 @@ export function useMarkAllNotificationsRead() {
 }
 
 export async function uploadReceipt(image: Blob): Promise<string> {
-  const path = `${currentUserId()}/${crypto.randomUUID()}.jpg`;
+  const path = `${currentUserId()}/${uid()}.jpg`;
   const { error } = await db()
     .storage.from("receipts")
     .upload(path, image, { contentType: "image/jpeg", upsert: false });

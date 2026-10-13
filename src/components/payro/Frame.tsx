@@ -28,15 +28,16 @@ export function MobileFrame({
 }) {
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center py-6 px-4"
+      className="min-h-dvh w-full flex items-center justify-center sm:py-6 sm:px-4"
       style={{
         background:
           "radial-gradient(1200px 600px at 50% -10%, #d8f5e9 0%, transparent 60%), linear-gradient(180deg,#eef1f6,#e6ebf3)",
       }}
     >
-      <div className="relative w-full max-w-[400px] h-[860px] rounded-[44px] bg-background shadow-[0_40px_80px_-30px_rgba(15,23,42,0.35)] border border-black/5 overflow-hidden flex flex-col">
+      {/* Full screen on real phones; framed phone mockup on larger screens. */}
+      <div className="relative w-full sm:max-w-[400px] h-dvh sm:h-[860px] sm:rounded-[44px] bg-background sm:shadow-[0_40px_80px_-30px_rgba(15,23,42,0.35)] sm:border border-black/5 overflow-hidden flex flex-col">
         {/* Status bar */}
-        <div className="absolute top-0 left-0 right-0 h-11 z-40 flex items-center justify-between px-7 text-[13px] font-semibold text-navy pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 h-11 z-40 hidden sm:flex items-center justify-between px-7 text-[13px] font-semibold text-navy pointer-events-none">
           <span>9:41</span>
           <div className="flex items-center gap-1.5">
             <svg width="16" height="10" viewBox="0 0 16 10" fill="currentColor">
@@ -69,10 +70,10 @@ export function MobileFrame({
           </div>
         </div>
         {/* Dynamic island */}
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[110px] h-[30px] rounded-full bg-black z-50" />
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[110px] h-[30px] rounded-full bg-black z-50 hidden sm:block" />
 
         <div
-          className={`flex-1 overflow-y-auto no-scrollbar pt-11 ${showNav ? "pb-24" : ""} ${contentClassName}`}
+          className={`flex-1 overflow-y-auto no-scrollbar pt-3 sm:pt-11 ${showNav ? "pb-24" : ""} ${contentClassName}`}
         >
           {children}
         </div>

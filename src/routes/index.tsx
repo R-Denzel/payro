@@ -1,24 +1,26 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { PayroLogo } from "@/components/payro/Frame";
+import { getStoredSession } from "@/lib/auth-store";
 
 export const Route = createFileRoute("/")({ component: Splash });
 
 function Splash() {
   const nav = useNavigate();
   useEffect(() => {
-    const t = setTimeout(() => nav({ to: "/onboarding" }), 2200);
+    // Returning users skip onboarding.
+    const t = setTimeout(() => nav({ to: getStoredSession() ? "/home" : "/onboarding" }), 2200);
     return () => clearTimeout(t);
   }, [nav]);
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center py-6 px-4"
+      className="min-h-dvh w-full flex items-center justify-center sm:py-6 sm:px-4"
       style={{
         background:
           "radial-gradient(1200px 600px at 50% -10%, #d8f5e9 0%, transparent 60%), linear-gradient(180deg,#eef1f6,#e6ebf3)",
       }}
     >
-      <div className="relative w-full max-w-[400px] h-[860px] rounded-[44px] shadow-[0_40px_80px_-30px_rgba(15,23,42,0.35)] border border-black/5 overflow-hidden flex flex-col items-center justify-center payro-gradient-dark">
+      <div className="relative w-full sm:max-w-[400px] h-dvh sm:h-[860px] sm:rounded-[44px] sm:shadow-[0_40px_80px_-30px_rgba(15,23,42,0.35)] sm:border border-black/5 overflow-hidden flex flex-col items-center justify-center payro-gradient-dark">
         <div
           className="absolute inset-0 opacity-30"
           style={{

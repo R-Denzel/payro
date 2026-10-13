@@ -21,6 +21,7 @@ import { takeExpenseDraft, type ExpenseDraft } from "@/lib/expense-draft";
 import { formatMoney, parseMoney } from "@/lib/money";
 import { requireProfileComplete } from "@/lib/route-guards";
 import { customTotal, equalTotal, personTotal, type ItemAllocation } from "@/lib/split-store";
+import { uid } from "@/lib/utils";
 
 export const Route = createFileRoute("/expense/new")({
   ssr: false,
@@ -155,7 +156,7 @@ function NewExpense() {
   const addGuest = () => {
     const name = guestName.trim();
     if (!name) return;
-    const guest: Person = { key: `guest:${crypto.randomUUID()}`, userId: null, name };
+    const guest: Person = { key: `guest:${uid()}`, userId: null, name };
     setGuests((g) => [...g, guest]);
     setIncluded((prev) => new Set(prev).add(guest.key));
     setGuestName("");
