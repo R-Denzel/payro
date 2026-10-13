@@ -16,11 +16,15 @@ export const Route = createFileRoute("/auth")({
 });
 
 function Auth() {
-  const [phone, setPhone] = useState("712 345 678");
+  const [phone, setPhone] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const nav = useNavigate();
   const handleContinue = async () => {
+    if (phone.replace(/\D/g, "").length < 9) {
+      setError("Enter your phone number");
+      return;
+    }
     const normalized = `+254${phone.replace(/\D/g, "").replace(/^0/, "")}`;
     setSending(true);
     setError(null);
@@ -37,7 +41,7 @@ function Auth() {
   return (
     <MobileFrame showNav={false}>
       <div className="px-6 pt-4 flex flex-col h-full">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 lg:hidden">
           <PayroLogo className="h-10 w-10" />
           <span className="text-lg font-bold text-navy">Payro</span>
         </div>
@@ -58,7 +62,10 @@ function Auth() {
             <input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="flex-1 bg-transparent outline-none text-[15px] font-medium"
+              placeholder="712 345 678"
+              inputMode="tel"
+              autoComplete="tel-national"
+              className="flex-1 bg-transparent outline-none text-[15px] font-medium placeholder:text-muted-foreground/60"
             />
           </div>
         </div>

@@ -25,7 +25,7 @@ function Setup() {
   return (
     <MobileFrame showNav={false}>
       <div className="px-6 pt-4 flex flex-col h-full">
-        <PayroLogo className="h-10 w-10" />
+        <PayroLogo className="h-10 w-10 lg:hidden" />
         <h1 className="mt-10 text-3xl font-bold text-navy leading-tight">What's your name?</h1>
         <p className="mt-2 text-muted-foreground">
           Friends see this when you split bills with them.

@@ -17,7 +17,7 @@ type ScanInput = { imageBase64: string; accessToken: string };
 const MAX_BASE64_LENGTH = 7_000_000; // ~5 MB image, Claude's per-image limit
 
 export const scanReceipt = createServerFn({ method: "POST" })
-  .inputValidator((input: ScanInput) => {
+  .validator((input: ScanInput) => {
     if (!input?.imageBase64 || typeof input.imageBase64 !== "string") {
       throw new Error("No image provided");
     }
