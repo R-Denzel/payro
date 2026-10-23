@@ -1,7 +1,7 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { MobileFrame, PayroLogo } from "@/components/payro/Frame";
-import { getStoredSession, setPendingPhone } from "@/lib/auth-store";
+import { getPendingSessionInvite, getStoredSession, setPendingPhone } from "@/lib/auth-store";
 import { sendOtp, signInWithGoogle } from "@/lib/supabase-auth";
 
 export const Route = createFileRoute("/auth")({
@@ -9,6 +9,10 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   beforeLoad: () => {
     if (getStoredSession()) {
+      const inviteToken = getPendingSessionInvite();
+      if (inviteToken) {
+        throw redirect({ to: "/restaurant/join/$token", params: { token: inviteToken } });
+      }
       throw redirect({ to: "/home" });
     }
   },
@@ -41,7 +45,7 @@ function Auth() {
   const handleGoogle = async () => {
     setError(null);
     try {
-      await signInWithGoogle(); // navigates away to Google on success
+      await signInWithGoogle("customer"); // navigates away to Google on success
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not start Google sign-in");
     }

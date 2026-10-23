@@ -81,6 +81,9 @@ function Onboarding() {
           <Link to="/auth" className="block text-center mt-4 text-sm text-muted-foreground">
             Already have an account? <span className="text-primary font-semibold">Sign in</span>
           </Link>
+          <Link to="/restaurant" className="block text-center mt-3 text-xs text-muted-foreground">
+            For Restaurants
+          </Link>
         </div>
       </div>
     </MobileFrame>

@@ -21,6 +21,7 @@ import { Route as PayRouteImport } from './routes/pay'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as QrRouteImport } from './routes/qr'
 import { Route as RequestRouteImport } from './routes/request'
+import { Route as RestaurantRouteImport } from './routes/restaurant'
 import { Route as ScanRouteImport } from './routes/scan'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as WalletRouteImport } from './routes/wallet'
@@ -30,6 +31,18 @@ import { Route as ExpenseIdRouteImport } from './routes/expense.$id'
 import { Route as ExpenseNewRouteImport } from './routes/expense.new'
 import { Route as GroupsIdRouteImport } from './routes/groups.$id'
 import { Route as RTokenRouteImport } from './routes/r.$token'
+import { Route as RestaurantIndexRouteImport } from './routes/restaurant.index'
+import { Route as RestaurantBillsRouteImport } from './routes/restaurant.bills'
+import { Route as RestaurantDashboardRouteImport } from './routes/restaurant.dashboard'
+import { Route as RestaurantLoginRouteImport } from './routes/restaurant.login'
+import { Route as RestaurantPreviewRouteImport } from './routes/restaurant.preview'
+import { Route as RestaurantRegisterRouteImport } from './routes/restaurant.register'
+import { Route as RestaurantReportsRouteImport } from './routes/restaurant.reports'
+import { Route as RestaurantResetPasswordRouteImport } from './routes/restaurant.reset-password'
+import { Route as RestaurantSessionsRouteImport } from './routes/restaurant.sessions'
+import { Route as RestaurantSettingsRouteImport } from './routes/restaurant.settings'
+import { Route as RestaurantSettlementsRouteImport } from './routes/restaurant.settlements'
+import { Route as RestaurantJoinTokenRouteImport } from './routes/restaurant.join.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -91,6 +104,11 @@ const RequestRoute = RequestRouteImport.update({
   path: '/request',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RestaurantRoute = RestaurantRouteImport.update({
+  id: '/restaurant',
+  path: '/restaurant',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScanRoute = ScanRouteImport.update({
   id: '/scan',
   path: '/scan',
@@ -136,6 +154,66 @@ const RTokenRoute = RTokenRouteImport.update({
   path: '/r/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RestaurantIndexRoute = RestaurantIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantBillsRoute = RestaurantBillsRouteImport.update({
+  id: '/bills',
+  path: '/bills',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantDashboardRoute = RestaurantDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantLoginRoute = RestaurantLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantPreviewRoute = RestaurantPreviewRouteImport.update({
+  id: '/preview',
+  path: '/preview',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantRegisterRoute = RestaurantRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantReportsRoute = RestaurantReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantResetPasswordRoute = RestaurantResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantSessionsRoute = RestaurantSessionsRouteImport.update({
+  id: '/sessions',
+  path: '/sessions',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantSettingsRoute = RestaurantSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantSettlementsRoute = RestaurantSettlementsRouteImport.update({
+  id: '/settlements',
+  path: '/settlements',
+  getParentRoute: () => RestaurantRoute,
+} as any)
+const RestaurantJoinTokenRoute = RestaurantJoinTokenRouteImport.update({
+  id: '/join/$token',
+  path: '/join/$token',
+  getParentRoute: () => RestaurantRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -150,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/qr': typeof QrRoute
   '/request': typeof RequestRoute
+  '/restaurant': typeof RestaurantRouteWithChildren
   '/scan': typeof ScanRoute
   '/setup': typeof SetupRoute
   '/wallet': typeof WalletRoute
@@ -159,6 +238,18 @@ export interface FileRoutesByFullPath {
   '/expense/new': typeof ExpenseNewRoute
   '/groups/$id': typeof GroupsIdRoute
   '/r/$token': typeof RTokenRoute
+  '/restaurant/bills': typeof RestaurantBillsRoute
+  '/restaurant/dashboard': typeof RestaurantDashboardRoute
+  '/restaurant/login': typeof RestaurantLoginRoute
+  '/restaurant/preview': typeof RestaurantPreviewRoute
+  '/restaurant/register': typeof RestaurantRegisterRoute
+  '/restaurant/reports': typeof RestaurantReportsRoute
+  '/restaurant/reset-password': typeof RestaurantResetPasswordRoute
+  '/restaurant/sessions': typeof RestaurantSessionsRoute
+  '/restaurant/settings': typeof RestaurantSettingsRoute
+  '/restaurant/settlements': typeof RestaurantSettlementsRoute
+  '/restaurant/': typeof RestaurantIndexRoute
+  '/restaurant/join/$token': typeof RestaurantJoinTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -182,6 +273,18 @@ export interface FileRoutesByTo {
   '/expense/new': typeof ExpenseNewRoute
   '/groups/$id': typeof GroupsIdRoute
   '/r/$token': typeof RTokenRoute
+  '/restaurant/bills': typeof RestaurantBillsRoute
+  '/restaurant/dashboard': typeof RestaurantDashboardRoute
+  '/restaurant/login': typeof RestaurantLoginRoute
+  '/restaurant/preview': typeof RestaurantPreviewRoute
+  '/restaurant/register': typeof RestaurantRegisterRoute
+  '/restaurant/reports': typeof RestaurantReportsRoute
+  '/restaurant/reset-password': typeof RestaurantResetPasswordRoute
+  '/restaurant/sessions': typeof RestaurantSessionsRoute
+  '/restaurant/settings': typeof RestaurantSettingsRoute
+  '/restaurant/settlements': typeof RestaurantSettlementsRoute
+  '/restaurant': typeof RestaurantIndexRoute
+  '/restaurant/join/$token': typeof RestaurantJoinTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -197,6 +300,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/qr': typeof QrRoute
   '/request': typeof RequestRoute
+  '/restaurant': typeof RestaurantRouteWithChildren
   '/scan': typeof ScanRoute
   '/setup': typeof SetupRoute
   '/wallet': typeof WalletRoute
@@ -206,6 +310,18 @@ export interface FileRoutesById {
   '/expense/new': typeof ExpenseNewRoute
   '/groups/$id': typeof GroupsIdRoute
   '/r/$token': typeof RTokenRoute
+  '/restaurant/bills': typeof RestaurantBillsRoute
+  '/restaurant/dashboard': typeof RestaurantDashboardRoute
+  '/restaurant/login': typeof RestaurantLoginRoute
+  '/restaurant/preview': typeof RestaurantPreviewRoute
+  '/restaurant/register': typeof RestaurantRegisterRoute
+  '/restaurant/reports': typeof RestaurantReportsRoute
+  '/restaurant/reset-password': typeof RestaurantResetPasswordRoute
+  '/restaurant/sessions': typeof RestaurantSessionsRoute
+  '/restaurant/settings': typeof RestaurantSettingsRoute
+  '/restaurant/settlements': typeof RestaurantSettlementsRoute
+  '/restaurant/': typeof RestaurantIndexRoute
+  '/restaurant/join/$token': typeof RestaurantJoinTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -222,6 +338,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/qr'
     | '/request'
+    | '/restaurant'
     | '/scan'
     | '/setup'
     | '/wallet'
@@ -231,6 +348,18 @@ export interface FileRouteTypes {
     | '/expense/new'
     | '/groups/$id'
     | '/r/$token'
+    | '/restaurant/bills'
+    | '/restaurant/dashboard'
+    | '/restaurant/login'
+    | '/restaurant/preview'
+    | '/restaurant/register'
+    | '/restaurant/reports'
+    | '/restaurant/reset-password'
+    | '/restaurant/sessions'
+    | '/restaurant/settings'
+    | '/restaurant/settlements'
+    | '/restaurant/'
+    | '/restaurant/join/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -254,6 +383,18 @@ export interface FileRouteTypes {
     | '/expense/new'
     | '/groups/$id'
     | '/r/$token'
+    | '/restaurant/bills'
+    | '/restaurant/dashboard'
+    | '/restaurant/login'
+    | '/restaurant/preview'
+    | '/restaurant/register'
+    | '/restaurant/reports'
+    | '/restaurant/reset-password'
+    | '/restaurant/sessions'
+    | '/restaurant/settings'
+    | '/restaurant/settlements'
+    | '/restaurant'
+    | '/restaurant/join/$token'
   id:
     | '__root__'
     | '/'
@@ -268,6 +409,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/qr'
     | '/request'
+    | '/restaurant'
     | '/scan'
     | '/setup'
     | '/wallet'
@@ -277,6 +419,18 @@ export interface FileRouteTypes {
     | '/expense/new'
     | '/groups/$id'
     | '/r/$token'
+    | '/restaurant/bills'
+    | '/restaurant/dashboard'
+    | '/restaurant/login'
+    | '/restaurant/preview'
+    | '/restaurant/register'
+    | '/restaurant/reports'
+    | '/restaurant/reset-password'
+    | '/restaurant/sessions'
+    | '/restaurant/settings'
+    | '/restaurant/settlements'
+    | '/restaurant/'
+    | '/restaurant/join/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -292,6 +446,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   QrRoute: typeof QrRoute
   RequestRoute: typeof RequestRoute
+  RestaurantRoute: typeof RestaurantRouteWithChildren
   ScanRoute: typeof ScanRoute
   SetupRoute: typeof SetupRoute
   WalletRoute: typeof WalletRoute
@@ -388,6 +543,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RequestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/restaurant': {
+      id: '/restaurant'
+      path: '/restaurant'
+      fullPath: '/restaurant'
+      preLoaderRoute: typeof RestaurantRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scan': {
       id: '/scan'
       path: '/scan'
@@ -451,6 +613,90 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/restaurant/': {
+      id: '/restaurant/'
+      path: '/'
+      fullPath: '/restaurant/'
+      preLoaderRoute: typeof RestaurantIndexRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/bills': {
+      id: '/restaurant/bills'
+      path: '/bills'
+      fullPath: '/restaurant/bills'
+      preLoaderRoute: typeof RestaurantBillsRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/dashboard': {
+      id: '/restaurant/dashboard'
+      path: '/dashboard'
+      fullPath: '/restaurant/dashboard'
+      preLoaderRoute: typeof RestaurantDashboardRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/login': {
+      id: '/restaurant/login'
+      path: '/login'
+      fullPath: '/restaurant/login'
+      preLoaderRoute: typeof RestaurantLoginRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/preview': {
+      id: '/restaurant/preview'
+      path: '/preview'
+      fullPath: '/restaurant/preview'
+      preLoaderRoute: typeof RestaurantPreviewRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/register': {
+      id: '/restaurant/register'
+      path: '/register'
+      fullPath: '/restaurant/register'
+      preLoaderRoute: typeof RestaurantRegisterRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/reports': {
+      id: '/restaurant/reports'
+      path: '/reports'
+      fullPath: '/restaurant/reports'
+      preLoaderRoute: typeof RestaurantReportsRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/reset-password': {
+      id: '/restaurant/reset-password'
+      path: '/reset-password'
+      fullPath: '/restaurant/reset-password'
+      preLoaderRoute: typeof RestaurantResetPasswordRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/sessions': {
+      id: '/restaurant/sessions'
+      path: '/sessions'
+      fullPath: '/restaurant/sessions'
+      preLoaderRoute: typeof RestaurantSessionsRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/settings': {
+      id: '/restaurant/settings'
+      path: '/settings'
+      fullPath: '/restaurant/settings'
+      preLoaderRoute: typeof RestaurantSettingsRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/settlements': {
+      id: '/restaurant/settlements'
+      path: '/settlements'
+      fullPath: '/restaurant/settlements'
+      preLoaderRoute: typeof RestaurantSettlementsRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
+    '/restaurant/join/$token': {
+      id: '/restaurant/join/$token'
+      path: '/join/$token'
+      fullPath: '/restaurant/join/$token'
+      preLoaderRoute: typeof RestaurantJoinTokenRouteImport
+      parentRoute: typeof RestaurantRoute
+    }
   }
 }
 
@@ -465,6 +711,40 @@ const GroupsRouteChildren: GroupsRouteChildren = {
 const GroupsRouteWithChildren =
   GroupsRoute._addFileChildren(GroupsRouteChildren)
 
+interface RestaurantRouteChildren {
+  RestaurantBillsRoute: typeof RestaurantBillsRoute
+  RestaurantDashboardRoute: typeof RestaurantDashboardRoute
+  RestaurantLoginRoute: typeof RestaurantLoginRoute
+  RestaurantPreviewRoute: typeof RestaurantPreviewRoute
+  RestaurantRegisterRoute: typeof RestaurantRegisterRoute
+  RestaurantReportsRoute: typeof RestaurantReportsRoute
+  RestaurantResetPasswordRoute: typeof RestaurantResetPasswordRoute
+  RestaurantSessionsRoute: typeof RestaurantSessionsRoute
+  RestaurantSettingsRoute: typeof RestaurantSettingsRoute
+  RestaurantSettlementsRoute: typeof RestaurantSettlementsRoute
+  RestaurantIndexRoute: typeof RestaurantIndexRoute
+  RestaurantJoinTokenRoute: typeof RestaurantJoinTokenRoute
+}
+
+const RestaurantRouteChildren: RestaurantRouteChildren = {
+  RestaurantBillsRoute: RestaurantBillsRoute,
+  RestaurantDashboardRoute: RestaurantDashboardRoute,
+  RestaurantLoginRoute: RestaurantLoginRoute,
+  RestaurantPreviewRoute: RestaurantPreviewRoute,
+  RestaurantRegisterRoute: RestaurantRegisterRoute,
+  RestaurantReportsRoute: RestaurantReportsRoute,
+  RestaurantResetPasswordRoute: RestaurantResetPasswordRoute,
+  RestaurantSessionsRoute: RestaurantSessionsRoute,
+  RestaurantSettingsRoute: RestaurantSettingsRoute,
+  RestaurantSettlementsRoute: RestaurantSettlementsRoute,
+  RestaurantIndexRoute: RestaurantIndexRoute,
+  RestaurantJoinTokenRoute: RestaurantJoinTokenRoute,
+}
+
+const RestaurantRouteWithChildren = RestaurantRoute._addFileChildren(
+  RestaurantRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActivityRoute: ActivityRoute,
@@ -478,6 +758,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   QrRoute: QrRoute,
   RequestRoute: RequestRoute,
+  RestaurantRoute: RestaurantRouteWithChildren,
   ScanRoute: ScanRoute,
   SetupRoute: SetupRoute,
   WalletRoute: WalletRoute,

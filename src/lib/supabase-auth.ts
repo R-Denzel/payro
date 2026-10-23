@@ -1,9 +1,13 @@
 import {
   getPendingPhone,
+  setPendingOAuthIntent,
+  setPendingRestaurantSignup,
   normalizePhone,
   persistSession,
   signOut as clearLocalSession,
   type AuthSession,
+  type OAuthIntent,
+  type PendingRestaurantSignup,
 } from "./auth-store";
 import { getSupabase } from "./supabase";
 
@@ -49,16 +53,27 @@ export async function verifyOtp(code: string): Promise<AuthSession> {
   return startSession(data.user.id, phone);
 }
 
-export async function signInWithGoogle(): Promise<void> {
+export async function signInWithGoogle(
+  intent: OAuthIntent = "customer",
+  restaurantSignup?: PendingRestaurantSignup,
+): Promise<void> {
   const supabase = getSupabase();
   if (!supabase) throw new Error("Google sign-in needs Supabase to be configured");
 
+  setPendingOAuthIntent(intent);
+  if (intent === "restaurant-signup" && restaurantSignup)
+    setPendingRestaurantSignup(restaurantSignup);
   // Leaves the app; Google sends the user back to /auth/callback.
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: { redirectTo: `${window.location.origin}/auth/callback` },
   });
-  if (error) throw error;
+  if (error) {
+    const { clearPendingOAuthIntent, clearPendingRestaurantSignup } = await import("./auth-store");
+    clearPendingOAuthIntent();
+    clearPendingRestaurantSignup();
+    throw error;
+  }
 }
 
 export async function completeOAuthSignIn(code: string): Promise<AuthSession> {

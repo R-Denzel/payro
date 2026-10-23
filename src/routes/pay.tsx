@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { MobileFrame, TopBar } from "@/components/payro/Frame";
 import { Avatar, EmptyState, ErrorNote, FieldError, Loading } from "@/components/payro/States";
 import { Check, Info, PartyPopper } from "lucide-react";
@@ -8,6 +9,8 @@ import {
   outstanding,
   personName,
   useExpenses,
+  useInitiatePayHeroPayment,
+  usePayHeroPaymentStatus,
   useRecordPayment,
   type PaymentProvider,
 } from "@/lib/data";
@@ -40,12 +43,31 @@ function Pay() {
   const me = currentUserId();
   const search = Route.useSearch();
   const nav = useNavigate();
+  const queryClient = useQueryClient();
   const expenses = useExpenses();
   const record = useRecordPayment();
+  const initiatePayHero = useInitiatePayHeroPayment();
   const [selected, setSelected] = useState<string | null>(search.share ?? null);
   const [method, setMethod] = useState<PaymentProvider>("mpesa");
   const [reference, setReference] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [pendingPayment, setPendingPayment] = useState<{
+    id: string;
+    amount: number;
+    to: string;
+    currency: string;
+  } | null>(null);
   const [done, setDone] = useState<{ amount: number; to: string; currency: string } | null>(null);
+  const payHeroStatus = usePayHeroPaymentStatus(pendingPayment?.id ?? null);
+  useEffect(() => {
+    if (payHeroStatus.data === "success") {
+      void Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["expenses"] }),
+        queryClient.invalidateQueries({ queryKey: ["payments"] }),
+        queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+      ]);
+    }
+  }, [payHeroStatus.data, queryClient]);
 
   // Shares I owe to other people.
   const debts = (expenses.data ?? []).flatMap((e) =>
@@ -60,16 +82,17 @@ function Pay() {
   );
   const debt = debts.find((d) => d.participant.id === selected) ?? null;
 
-  if (done)
+  const confirmation = done ?? (payHeroStatus.data === "success" ? pendingPayment : null);
+  if (confirmation)
     return (
       <MobileFrame showNav={false}>
         <div className="h-full flex flex-col items-center justify-center px-6 text-center animate-fade-in">
           <div className="h-24 w-24 rounded-full payro-gradient flex items-center justify-center shadow-glow animate-scale-in">
             <Check className="h-12 w-12 text-white" strokeWidth={3} />
           </div>
-          <h2 className="mt-6 text-2xl font-bold text-navy">Payment recorded</h2>
+          <h2 className="mt-6 text-2xl font-bold text-navy">Payment confirmed</h2>
           <p className="mt-1 text-muted-foreground">
-            {formatMoney(done.amount, done.currency)} to {done.to}
+            {formatMoney(confirmation.amount, confirmation.currency)} to {confirmation.to}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">They've been notified.</p>
           <button
@@ -78,6 +101,37 @@ function Pay() {
           >
             Done
           </button>
+        </div>
+      </MobileFrame>
+    );
+
+  if (pendingPayment)
+    return (
+      <MobileFrame showNav={false}>
+        <TopBar back="/home" title="M-Pesa payment" />
+        <div className="px-6 py-8 text-center">
+          {payHeroStatus.data === "failed" || payHeroStatus.data === "cancelled" ? (
+            <>
+              <h2 className="text-xl font-bold text-navy">Payment was not completed</h2>
+              <p className="mt-2 text-sm text-muted-foreground">No payment was recorded. Return to the bill to try again.</p>
+              <button onClick={() => setPendingPayment(null)} className="mt-6 w-full h-14 rounded-2xl payro-gradient text-white font-semibold">
+                Back to bill
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="mx-auto h-16 w-16 rounded-full bg-emerald-50 flex items-center justify-center text-2xl">M</div>
+              <h2 className="mt-5 text-xl font-bold text-navy">Check your phone</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Approve the M-Pesa prompt for {formatMoney(pendingPayment.amount, pendingPayment.currency)}.
+                The payment will go to {pendingPayment.to}'s restaurant Till or Paybill.
+              </p>
+              <p className="mt-4 text-xs text-muted-foreground">Waiting for M-Pesa confirmation…</p>
+              <button onClick={() => nav({ to: "/home" })} className="mt-6 w-full h-14 rounded-2xl border border-border bg-white font-semibold text-navy">
+                Continue in background
+              </button>
+            </>
+          )}
         </div>
       </MobileFrame>
     );
@@ -150,17 +204,24 @@ function Pay() {
               )}
             </div>
 
-            <div className="mt-4 rounded-2xl bg-sky-50 border border-sky-100 p-3 flex gap-2 text-xs text-sky-900">
-              <Info className="h-4 w-4 shrink-0 mt-0.5" />
-              Send the money with your usual app, then record it here. Payro doesn't move money yet.
-            </div>
+            {debt.expense.restaurant_id ? (
+              <div className="mt-4 rounded-2xl bg-emerald-50 border border-emerald-100 p-3 flex gap-2 text-xs text-emerald-900">
+                <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                PayHero will send an M-Pesa prompt. A confirmed payment goes directly to this restaurant's Till or Paybill.
+              </div>
+            ) : (
+              <div className="mt-4 rounded-2xl bg-sky-50 border border-sky-100 p-3 flex gap-2 text-xs text-sky-900">
+                <Info className="h-4 w-4 shrink-0 mt-0.5" />
+                Send the money with your usual app, then record it here. Payro doesn't move money yet.
+              </div>
+            )}
 
             <p className="mt-6 text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">
-              How did you pay?
+              {debt.expense.restaurant_id ? "Pay with" : "How did you pay?"}
             </p>
             <div className="space-y-2">
-              {methods.map((m) => {
-                const on = method === m.id;
+              {methods.filter((m) => !debt.expense.restaurant_id || m.id === "mpesa").map((m) => {
+                const on = debt.expense.restaurant_id ? m.id === "mpesa" : method === m.id;
                 return (
                   <button
                     key={m.id}
@@ -186,7 +247,28 @@ function Pay() {
               })}
             </div>
 
-            {method !== "cash" && (
+            {debt.expense.restaurant_id ? (
+              <>
+                <label className="mt-3 block text-sm font-medium text-navy" htmlFor="payhero-phone">
+                  M-Pesa phone number
+                </label>
+                <input
+                  id="payhero-phone"
+                  type="tel"
+                  required
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="0712 345 678"
+                  autoComplete="tel"
+                  className="mt-2 w-full h-12 rounded-xl border border-border bg-surface px-3 text-sm font-medium outline-none focus:border-primary"
+                />
+                {debt.amount % 100 !== 0 && (
+                  <p className="mt-2 text-xs text-destructive">
+                    M-Pesa STK Push accepts whole-shilling amounts. Ask the restaurant to adjust this share.
+                  </p>
+                )}
+              </>
+            ) : method !== "cash" && (
               <input
                 value={reference}
                 onChange={(e) => setReference(e.target.value.toUpperCase())}
@@ -195,25 +277,44 @@ function Pay() {
               />
             )}
 
-            <FieldError error={record.error} />
+            <FieldError error={debt.expense.restaurant_id ? initiatePayHero.error : record.error} />
             <button
-              onClick={() =>
-                record.mutate(
-                  { participantId: debt.participant.id, provider: method, reference },
-                  {
-                    onSuccess: () =>
-                      setDone({
+              onClick={() => {
+                if (debt.expense.restaurant_id) {
+                  initiatePayHero.mutate(
+                    { participantId: debt.participant.id, phoneNumber },
+                    {
+                      onSuccess: (id) => setPendingPayment({
+                        id,
                         amount: debt.amount,
                         to: debt.to,
                         currency: debt.expense.currency,
                       }),
+                    },
+                  );
+                  return;
+                }
+                record.mutate(
+                  { participantId: debt.participant.id, provider: method, reference },
+                  {
+                    onSuccess: () => setDone({
+                      amount: debt.amount,
+                      to: debt.to,
+                      currency: debt.expense.currency,
+                    }),
                   },
-                )
-              }
-              disabled={record.isPending}
+                );
+              }}
+              disabled={record.isPending || initiatePayHero.isPending || (Boolean(debt.expense.restaurant_id) && debt.amount % 100 !== 0)}
               className="mt-6 w-full h-14 rounded-2xl payro-gradient text-white font-semibold shadow-glow active:scale-[0.99] transition disabled:opacity-60"
             >
-              {record.isPending ? "Recording…" : "Record payment"}
+              {initiatePayHero.isPending
+                ? "Starting payment…"
+                : record.isPending
+                  ? "Recording…"
+                : debt.expense.restaurant_id
+                  ? "Send M-Pesa prompt"
+                  : "Record payment"}
             </button>
           </>
         )}

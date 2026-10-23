@@ -1,7 +1,7 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { MobileFrame, TopBar } from "@/components/payro/Frame";
-import { getPendingPhone, getStoredSession } from "@/lib/auth-store";
+import { getPendingPhone, getPendingSessionInvite, getStoredSession } from "@/lib/auth-store";
 import { sendOtp, verifyOtp } from "@/lib/supabase-auth";
 
 const RESEND_SECONDS = 60;
@@ -10,6 +10,10 @@ export const Route = createFileRoute("/auth_/otp")({
   ssr: false,
   beforeLoad: () => {
     if (getStoredSession()) {
+      const inviteToken = getPendingSessionInvite();
+      if (inviteToken) {
+        throw redirect({ to: "/restaurant/join/$token", params: { token: inviteToken } });
+      }
       throw redirect({ to: "/home" });
     }
     if (!getPendingPhone()) {
@@ -40,6 +44,11 @@ function Otp() {
     setError(null);
     try {
       await verifyOtp(digits.join(""));
+      const inviteToken = getPendingSessionInvite();
+      if (inviteToken) {
+        nav({ to: "/restaurant/join/$token", params: { token: inviteToken }, replace: true });
+        return;
+      }
       nav({ to: "/home" });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Invalid code");

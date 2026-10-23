@@ -57,6 +57,7 @@ export type ExpenseItem = {
 export type Expense = {
   id: string;
   group_id: string | null;
+  restaurant_id: string | null;
   creator_id: string;
   merchant: string;
   category: string;
@@ -414,6 +415,45 @@ export function useRecordPayment() {
         }),
       ),
     onSuccess: invalidate,
+  });
+}
+
+export function useInitiatePayHeroPayment() {
+  const invalidate = useInvalidateAll();
+  return useMutation({
+    mutationFn: async (input: { participantId: string; phoneNumber: string }) => {
+      const { data, error } = await db().functions.invoke("payhero-initiate", {
+        body: { participantId: input.participantId, phoneNumber: input.phoneNumber },
+      });
+      if (error) {
+        let detail = error.message;
+        if (error.context instanceof Response) {
+          const payload = await error.context.clone().json().catch(() => null);
+          if (payload?.error) detail = String(payload.error);
+        }
+        throw new Error(detail || "Could not start the M-Pesa payment.");
+      }
+      if (!data?.paymentId) throw new Error("PayHero did not return a payment request.");
+      return data.paymentId as string;
+    },
+    onSuccess: invalidate,
+  });
+}
+
+export function usePayHeroPaymentStatus(paymentId: string | null) {
+  return useQuery({
+    queryKey: ["payhero-payment-status", paymentId],
+    enabled: Boolean(paymentId),
+    refetchInterval: (query) => query.state.data === "pending" ? 2500 : false,
+    queryFn: async () => {
+      const { data, error } = await db()
+        .from("payments")
+        .select("status")
+        .eq("id", paymentId!)
+        .single();
+      if (error) throw new Error(error.message);
+      return data.status as "pending" | "success" | "failed" | "cancelled";
+    },
   });
 }
 

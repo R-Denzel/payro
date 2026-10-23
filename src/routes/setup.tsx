@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { MobileFrame, PayroLogo } from "@/components/payro/Frame";
 import { FieldError } from "@/components/payro/States";
-import { getStoredSession } from "@/lib/auth-store";
+import { getStoredSession, takeSetupSessionGroup } from "@/lib/auth-store";
 import { useUpdateProfile } from "@/lib/data";
 import { requireAuth } from "@/lib/route-guards";
 
@@ -19,7 +19,16 @@ function Setup() {
 
   const save = () => {
     if (name.trim().length < 2) return;
-    update.mutate({ full_name: name }, { onSuccess: () => nav({ to: "/home" }) });
+    update.mutate(
+      { full_name: name },
+      {
+        onSuccess: () => {
+          const groupId = takeSetupSessionGroup();
+          if (groupId) nav({ to: "/groups/$id", params: { id: groupId } });
+          else nav({ to: "/home" });
+        },
+      },
+    );
   };
 
   return (

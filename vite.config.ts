@@ -12,6 +12,8 @@ export default defineConfig(({ mode }) => {
   return {
     // nitro builds the server for the host (auto-detects Vercel when deployed there).
     plugins: [tanstackStart(), nitro(), react(), tailwindcss()],
+    // Allow a second device on the same Wi-Fi to open local session invite links.
+    server: { host: "0.0.0.0" },
     resolve: {
       tsconfigPaths: true,
     },

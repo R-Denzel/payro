@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { MobileFrame, TopBar } from "@/components/payro/Frame";
 import { Avatar, ErrorNote, FieldError, Loading } from "@/components/payro/States";
@@ -20,6 +21,7 @@ import {
 } from "@/lib/data";
 import { formatMoney, relativeDay, timeOfDay } from "@/lib/money";
 import { requireProfileComplete } from "@/lib/route-guards";
+import { getSupabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/expense/$id")({
   ssr: false,
@@ -29,6 +31,7 @@ export const Route = createFileRoute("/expense/$id")({
 
 function ExpenseDetail() {
   const { id } = Route.useParams();
+  const client = useQueryClient();
   const me = currentUserId();
   const expense = useExpense(id);
   const receipt = useReceiptUrl(expense.data?.receipt_url ?? null);
@@ -41,6 +44,8 @@ function ExpenseDetail() {
     amount: number;
     phone: string | null;
   } | null>(null);
+  const [claimBusy, setClaimBusy] = useState<string | null>(null);
+  const [claimError, setClaimError] = useState("");
 
   if (expense.isLoading)
     return (
@@ -69,6 +74,25 @@ function ExpenseDetail() {
     const p = e.expense_participants.find((x) => x.id === participantId);
     return p ? participantName(p, me) : "?";
   };
+  const myParticipant = e.expense_participants.find((participant) => participant.user_id === me);
+
+  async function toggleItemClaim(itemId: string, claimed: boolean) {
+    setClaimBusy(itemId);
+    setClaimError("");
+    try {
+      const { error } = await getSupabase()!.rpc("claim_restaurant_bill_item", {
+        _item_id: itemId,
+        _claim: !claimed,
+      });
+      if (error) throw error;
+      await client.invalidateQueries({ queryKey: ["expense", id] });
+      await client.invalidateQueries({ queryKey: ["expenses"] });
+    } catch (error) {
+      setClaimError(error instanceof Error ? error.message : "Could not update your item selection.");
+    } finally {
+      setClaimBusy(null);
+    }
+  }
 
   return (
     <MobileFrame showNav={false}>
@@ -183,6 +207,9 @@ function ExpenseDetail() {
               Items
             </p>
             <div className="rounded-2xl bg-white border border-border divide-y divide-border">
+              {e.restaurant_id && myParticipant && (
+                <p className="px-3 pt-3 text-xs text-muted-foreground">Select the items you ordered. Your share updates as items are claimed.</p>
+              )}
               {e.expense_items.map((item) => (
                 <div key={item.id} className="p-3">
                   <div className="flex justify-between text-sm">
@@ -198,6 +225,16 @@ function ExpenseDetail() {
                     <p className="text-[11px] text-muted-foreground mt-0.5">
                       {item.item_claims.map((c) => nameOf(c.participant_id)).join(", ")}
                     </p>
+                  )}
+                  {e.restaurant_id && myParticipant && e.status === "open" && (
+                    <button
+                      type="button"
+                      onClick={() => toggleItemClaim(item.id, item.item_claims.some((claim) => claim.participant_id === myParticipant.id))}
+                      disabled={claimBusy !== null}
+                      className="mt-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900 disabled:opacity-50"
+                    >
+                      {claimBusy === item.id ? "Saving…" : item.item_claims.some((claim) => claim.participant_id === myParticipant.id) ? "Remove my selection" : "I had this"}
+                    </button>
                   )}
                 </div>
               ))}
@@ -218,6 +255,7 @@ function ExpenseDetail() {
                 </div>
               )}
             </div>
+            {claimError && <p role="alert" className="mt-2 text-sm text-red-700">{claimError}</p>}
           </>
         )}
 
