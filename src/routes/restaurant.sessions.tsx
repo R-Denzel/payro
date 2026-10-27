@@ -110,7 +110,8 @@ function Sessions() {
       </div>
       {q.data!.r.status === "pending" && (
         <p className="mt-4 text-sm text-amber-800" role="status">
-          Your restaurant is awaiting confirmation. You can create sessions now; bill publishing will be available after approval.
+          Your restaurant is awaiting confirmation. You can create sessions now; bill publishing
+          will be available after approval.
         </p>
       )}
       {q.data!.r.status === "rejected" && (
@@ -180,10 +181,9 @@ function SessionShare({ groupId }: { groupId: string }) {
     setNotice("");
     setQr("");
     try {
-      const { data: token, error } = await getSupabase()!.rpc(
-        "create_restaurant_session_invite",
-        { _group_id: groupId },
-      );
+      const { data: token, error } = await getSupabase()!.rpc("create_restaurant_session_invite", {
+        _group_id: groupId,
+      });
       if (error) throw error;
       if (!token) throw new Error("Could not create a session invite.");
       setInviteUrl(`${window.location.origin}/restaurant/join/${token}`);
@@ -218,14 +218,20 @@ function SessionShare({ groupId }: { groupId: string }) {
       {inviteUrl && (
         <div className="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
           {qr ? (
-            <img src={qr} alt="QR code to join this Payro session" className="h-28 w-28 rounded-lg bg-white p-1" />
+            <img
+              src={qr}
+              alt="QR code to join this Payro session"
+              className="h-28 w-28 rounded-lg bg-white p-1"
+            />
           ) : (
             <span className="grid h-28 w-28 place-items-center rounded-lg bg-white text-emerald-800">
               <QrCode size={30} />
             </span>
           )}
           <div className="min-w-52 flex-1">
-            <p className="text-xs font-semibold text-slate-700">Scan or share this invite link</p>
+            <p className="text-xs font-semibold text-slate-700">
+              Guests scan to join and choose items after the bill is added
+            </p>
             <input
               readOnly
               aria-label="Session invite link"
@@ -241,11 +247,17 @@ function SessionShare({ groupId }: { groupId: string }) {
               {copied ? <Check size={13} /> : <Copy size={13} />}
               {copied ? "Copied" : "Copy invite link"}
             </button>
-            <p className="mt-2 text-[11px] text-slate-500">Expires in 14 days; up to 100 guests can join.</p>
+            <p className="mt-2 text-[11px] text-slate-500">
+              Expires in 14 days; up to 100 guests can join.
+            </p>
           </div>
         </div>
       )}
-      {notice && <p role="status" className="mt-2 text-xs text-amber-800">{notice}</p>}
+      {notice && (
+        <p role="status" className="mt-2 text-xs text-amber-800">
+          {notice}
+        </p>
+      )}
     </div>
   );
 }
@@ -269,11 +281,12 @@ function InviteGuest({ groupId }: { groupId: string }) {
       setNotice("Guest added. They can find this session in their Payro app.");
       await queryClient.invalidateQueries({ queryKey: ["restaurant-groups"] });
     } catch (e) {
-      const detail = e instanceof Error
-        ? e.message
-        : typeof e === "object" && e !== null && "message" in e && typeof e.message === "string"
+      const detail =
+        e instanceof Error
           ? e.message
-          : "";
+          : typeof e === "object" && e !== null && "message" in e && typeof e.message === "string"
+            ? e.message
+            : "";
       setNotice(detail || "Could not add guest.");
     } finally {
       setBusy(false);
