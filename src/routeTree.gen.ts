@@ -42,6 +42,7 @@ import { Route as RestaurantResetPasswordRouteImport } from './routes/restaurant
 import { Route as RestaurantSessionsRouteImport } from './routes/restaurant.sessions'
 import { Route as RestaurantSettingsRouteImport } from './routes/restaurant.settings'
 import { Route as RestaurantSettlementsRouteImport } from './routes/restaurant.settlements'
+import { Route as SplitTokenRouteImport } from './routes/split.$token'
 import { Route as RestaurantJoinTokenRouteImport } from './routes/restaurant.join.$token'
 
 const IndexRoute = IndexRouteImport.update({
@@ -209,6 +210,11 @@ const RestaurantSettlementsRoute = RestaurantSettlementsRouteImport.update({
   path: '/settlements',
   getParentRoute: () => RestaurantRoute,
 } as any)
+const SplitTokenRoute = SplitTokenRouteImport.update({
+  id: '/split/$token',
+  path: '/split/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RestaurantJoinTokenRoute = RestaurantJoinTokenRouteImport.update({
   id: '/join/$token',
   path: '/join/$token',
@@ -248,6 +254,7 @@ export interface FileRoutesByFullPath {
   '/restaurant/sessions': typeof RestaurantSessionsRoute
   '/restaurant/settings': typeof RestaurantSettingsRoute
   '/restaurant/settlements': typeof RestaurantSettlementsRoute
+  '/split/$token': typeof SplitTokenRoute
   '/restaurant/': typeof RestaurantIndexRoute
   '/restaurant/join/$token': typeof RestaurantJoinTokenRoute
 }
@@ -283,6 +290,7 @@ export interface FileRoutesByTo {
   '/restaurant/sessions': typeof RestaurantSessionsRoute
   '/restaurant/settings': typeof RestaurantSettingsRoute
   '/restaurant/settlements': typeof RestaurantSettlementsRoute
+  '/split/$token': typeof SplitTokenRoute
   '/restaurant': typeof RestaurantIndexRoute
   '/restaurant/join/$token': typeof RestaurantJoinTokenRoute
 }
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/restaurant/sessions': typeof RestaurantSessionsRoute
   '/restaurant/settings': typeof RestaurantSettingsRoute
   '/restaurant/settlements': typeof RestaurantSettlementsRoute
+  '/split/$token': typeof SplitTokenRoute
   '/restaurant/': typeof RestaurantIndexRoute
   '/restaurant/join/$token': typeof RestaurantJoinTokenRoute
 }
@@ -358,6 +367,7 @@ export interface FileRouteTypes {
     | '/restaurant/sessions'
     | '/restaurant/settings'
     | '/restaurant/settlements'
+    | '/split/$token'
     | '/restaurant/'
     | '/restaurant/join/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -393,6 +403,7 @@ export interface FileRouteTypes {
     | '/restaurant/sessions'
     | '/restaurant/settings'
     | '/restaurant/settlements'
+    | '/split/$token'
     | '/restaurant'
     | '/restaurant/join/$token'
   id:
@@ -429,6 +440,7 @@ export interface FileRouteTypes {
     | '/restaurant/sessions'
     | '/restaurant/settings'
     | '/restaurant/settlements'
+    | '/split/$token'
     | '/restaurant/'
     | '/restaurant/join/$token'
   fileRoutesById: FileRoutesById
@@ -455,6 +467,7 @@ export interface RootRouteChildren {
   ExpenseIdRoute: typeof ExpenseIdRoute
   ExpenseNewRoute: typeof ExpenseNewRoute
   RTokenRoute: typeof RTokenRoute
+  SplitTokenRoute: typeof SplitTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -690,6 +703,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestaurantSettlementsRouteImport
       parentRoute: typeof RestaurantRoute
     }
+    '/split/$token': {
+      id: '/split/$token'
+      path: '/split/$token'
+      fullPath: '/split/$token'
+      preLoaderRoute: typeof SplitTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/restaurant/join/$token': {
       id: '/restaurant/join/$token'
       path: '/join/$token'
@@ -767,6 +787,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExpenseIdRoute: ExpenseIdRoute,
   ExpenseNewRoute: ExpenseNewRoute,
   RTokenRoute: RTokenRoute,
+  SplitTokenRoute: SplitTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

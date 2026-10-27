@@ -77,6 +77,25 @@ export type Expense = {
 
 export type ExpenseDetail = Expense & { expense_items: ExpenseItem[] };
 
+export type ExpenseSplitInviteItem = {
+  id: string;
+  name: string;
+  qty: number;
+  price_cents: number;
+  claim_count: number;
+  claimed_by_me: boolean;
+};
+
+export type ExpenseSplitInvite = {
+  merchant: string;
+  currency: string;
+  total_cents: number;
+  expires_at: string;
+  participant_name: string | null;
+  amount_due_cents: number | null;
+  items: ExpenseSplitInviteItem[];
+};
+
 export type Payment = {
   id: string;
   expense_id: string;
@@ -261,6 +280,56 @@ export function useExpense(id: string) {
   });
 }
 
+export async function fetchExpenseSplitInvite(
+  token: string,
+  guestAccessToken: string | null,
+): Promise<ExpenseSplitInvite | null> {
+  return unwrap<ExpenseSplitInvite | null>(
+    await db().rpc("get_expense_split_invite", {
+      _token: token,
+      _guest_access_token: guestAccessToken,
+    }),
+  );
+}
+
+export async function createExpenseSplitInvite(expenseId: string): Promise<string> {
+  return unwrap<string>(await db().rpc("create_expense_split_invite", { _expense_id: expenseId }));
+}
+
+export async function joinExpenseSplitInvite(
+  token: string,
+  guestName: string,
+  guestAccessToken: string,
+): Promise<string> {
+  return unwrap<string>(
+    await db().rpc("join_expense_split_invite", {
+      _token: token,
+      _guest_name: guestName,
+      _guest_access_token: guestAccessToken,
+    }),
+  );
+}
+
+export async function claimExpenseSplitInviteItem(
+  token: string,
+  guestAccessToken: string,
+  itemId: string,
+  claim: boolean,
+): Promise<number> {
+  return unwrap<number>(
+    await db().rpc("claim_expense_split_item", {
+      _token: token,
+      _guest_access_token: guestAccessToken,
+      _item_id: itemId,
+      _claim: claim,
+    }),
+  );
+}
+
+export async function claimExpenseItem(itemId: string, claim: boolean): Promise<number> {
+  return unwrap<number>(await db().rpc("claim_expense_item", { _item_id: itemId, _claim: claim }));
+}
+
 export function usePayments() {
   return useQuery({
     queryKey: keys.payments,
@@ -428,7 +497,10 @@ export function useInitiatePayHeroPayment() {
       if (error) {
         let detail = error.message;
         if (error.context instanceof Response) {
-          const payload = await error.context.clone().json().catch(() => null);
+          const payload = await error.context
+            .clone()
+            .json()
+            .catch(() => null);
           if (payload?.error) detail = String(payload.error);
         }
         throw new Error(detail || "Could not start the M-Pesa payment.");
@@ -444,7 +516,7 @@ export function usePayHeroPaymentStatus(paymentId: string | null) {
   return useQuery({
     queryKey: ["payhero-payment-status", paymentId],
     enabled: Boolean(paymentId),
-    refetchInterval: (query) => query.state.data === "pending" ? 2500 : false,
+    refetchInterval: (query) => (query.state.data === "pending" ? 2500 : false),
     queryFn: async () => {
       const { data, error } = await db()
         .from("payments")
