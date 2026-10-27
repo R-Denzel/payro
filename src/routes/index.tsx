@@ -8,6 +8,15 @@ export const Route = createFileRoute("/")({ component: Splash });
 function Splash() {
   const nav = useNavigate();
   useEffect(() => {
+    const currentUrl = new URL(window.location.href);
+    if (currentUrl.searchParams.has("code")) {
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      callbackUrl.search = currentUrl.search;
+      callbackUrl.hash = currentUrl.hash;
+      window.location.replace(callbackUrl);
+      return;
+    }
+
     // Returning users skip onboarding.
     const t = setTimeout(() => nav({ to: getStoredSession() ? "/home" : "/onboarding" }), 2200);
     return () => clearTimeout(t);

@@ -31,7 +31,8 @@ function AuthCallback() {
 
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
-    const currentIntent = getPendingOAuthIntent();
+    const currentIntent =
+      params.get("intent") === "restaurant-signup" ? "restaurant-signup" : getPendingOAuthIntent();
     setIntent(currentIntent);
     if (!code) {
       setError(params.get("error_description") ?? "Google sign-in was cancelled.");

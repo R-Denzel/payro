@@ -43,6 +43,7 @@ function Register() {
         email: fields.email,
         password: fields.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?intent=restaurant-signup`,
           data: {
             full_name: fields.owner,
             restaurant_name: fields.name,
