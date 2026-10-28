@@ -87,6 +87,9 @@ function ExpenseDetail() {
         0,
       )
     : 0;
+  const allItemsClaimed =
+    e.expense_items.length > 0 &&
+    e.expense_items.every((item) => item.item_claims.length > 0);
 
   async function toggleItemClaim(itemId: string, claimed: boolean) {
     setClaimBusy(itemId);
@@ -153,7 +156,8 @@ function ExpenseDetail() {
             const left = outstanding(p);
             const name = participantName(p, me);
             const isCreatorRow = p.user_id === e.creator_id;
-            const canMarkPaid = left > 0 && (iAmCreator || p.user_id === me);
+            const canMarkPaid =
+              left > 0 && allItemsClaimed && (iAmCreator || p.user_id === me);
             return (
               <div
                 key={p.id}
@@ -230,7 +234,8 @@ function ExpenseDetail() {
               {myParticipant && (
                 <div className="px-3 pt-3">
                   <p className="text-xs text-muted-foreground">
-                    Select the items you had. Your share updates as items are claimed.
+                    Select the items you had. Final fees and sharing are calculated after every
+                    item has been claimed.
                   </p>
                   <div
                     className="mt-2 flex items-center justify-between rounded-2xl bg-emerald-50 px-3 py-2"
