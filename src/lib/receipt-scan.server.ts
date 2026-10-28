@@ -56,11 +56,12 @@ export async function readReceipt(
 ): Promise<ScannedReceipt> {
   await assertSignedIn(accessToken);
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  if (!apiKey) {
     throw new Error("Receipt scanning is not set up: ANTHROPIC_API_KEY is missing on the server.");
   }
 
-  const client = new Anthropic();
+  const client = new Anthropic({ apiKey });
 
   let response;
   try {
@@ -86,7 +87,10 @@ export async function readReceipt(
     });
   } catch (error) {
     if (error instanceof Anthropic.AuthenticationError) {
-      throw new Error("Receipt scanning is misconfigured (invalid Anthropic API key).");
+      const requestId = error.requestID ? ` Request ID: ${error.requestID}.` : "";
+      throw new Error(
+        `Anthropic rejected the API key used by this deployment. Verify ANTHROPIC_API_KEY is an active Anthropic Console key in this Vercel environment, then redeploy.${requestId}`,
+      );
     }
     if (error instanceof Anthropic.RateLimitError) {
       throw new Error("Too many scans right now. Please try again in a minute.");

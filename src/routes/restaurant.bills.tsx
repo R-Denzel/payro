@@ -24,6 +24,7 @@ function Bills() {
   const receiptInput = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({ group: search.session ?? "", merchant: "", amount: "" });
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error" | null>(null);
   const [busy, setBusy] = useState(false);
   const [scanBusy, setScanBusy] = useState(false);
   const [scanError, setScanError] = useState("");
@@ -79,7 +80,9 @@ function Bills() {
     try {
       const c = getSupabase();
       if (!c) throw new Error("Supabase is not configured.");
-      const { data: { user } } = await c.auth.getUser();
+      const {
+        data: { user },
+      } = await c.auth.getUser();
       if (!user) throw new Error("Sign in again to upload a receipt.");
 
       const image = await prepareReceiptImage(file);
@@ -96,11 +99,13 @@ function Bills() {
 
       setReceipt(scanned);
       setReceiptPath(path);
-      setItems(scanned.items.map((item) => ({
-        name: item.name,
-        qty: String(item.qty),
-        price: (item.price_cents / 100).toFixed(2),
-      })));
+      setItems(
+        scanned.items.map((item) => ({
+          name: item.name,
+          qty: String(item.qty),
+          price: (item.price_cents / 100).toFixed(2),
+        })),
+      );
       setService((scanned.service_cents / 100).toFixed(2));
       setTax((scanned.tax_cents / 100).toFixed(2));
       setForm((current) => ({
@@ -128,6 +133,7 @@ function Bills() {
     e.preventDefault();
     setBusy(true);
     setMessage("");
+    setMessageType(null);
     try {
       const c = getSupabase()!;
       const d = q.data!;
@@ -155,7 +161,9 @@ function Bills() {
         throw new Error("Enter a whole-shilling bill total for M-Pesa payments.");
       }
       if (receipt && !receiptMatches)
-        throw new Error("Receipt items, service, and tax must add up to the bill total. Review the amounts first.");
+        throw new Error(
+          "Receipt items, service, and tax must add up to the bill total. Review the amounts first.",
+        );
       if (totalKes < members.length) {
         throw new Error("The bill total must include at least KES 1 for every guest share.");
       }
@@ -176,16 +184,19 @@ function Bills() {
         _service_cents: receipt ? serviceCents : 0,
         _tax_cents: receipt ? taxCents : 0,
         _total_cents: cents,
-        _items: receipt ? items.map((item) => ({
-          name: item.name.trim(),
-          qty: Math.max(1, Number.parseInt(item.qty, 10) || 1),
-          price_cents: parseMoney(item.price) ?? 0,
-        })) : [],
+        _items: receipt
+          ? items.map((item) => ({
+              name: item.name.trim(),
+              qty: Math.max(1, Number.parseInt(item.qty, 10) || 1),
+              price_cents: parseMoney(item.price) ?? 0,
+            }))
+          : [],
         _receipt_url: receiptPath,
         _participants: portions,
       });
       if (error) throw error;
       setMessage("Bill published to the selected Payro group session.");
+      setMessageType("success");
       setForm({ group: "", merchant: "", amount: "" });
       setReceipt(null);
       setReceiptPreview("");
@@ -196,7 +207,10 @@ function Bills() {
       await client.invalidateQueries({ queryKey: ["restaurant-bills"] });
       await client.invalidateQueries({ queryKey: ["restaurant-dashboard"] });
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Could not publish bill.");
+      setMessage(
+        getErrorMessage(err, "Could not publish bill. Check the browser console for details."),
+      );
+      setMessageType("error");
     } finally {
       setBusy(false);
     }
@@ -214,7 +228,8 @@ function Bills() {
     >
       <h1 className="text-3xl font-semibold">Restaurant bills</h1>
       <p className="mt-2 text-slate-600">
-        Upload a receipt for AI item extraction, review the totals, then let guests claim the items they ordered.
+        Upload a receipt for AI item extraction, review the totals, then let guests claim the items
+        they ordered.
       </p>
       <input
         ref={receiptInput}
@@ -229,88 +244,191 @@ function Bills() {
         className="mt-6 grid gap-4 rounded-3xl border border-black/5 bg-white p-5"
       >
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" onClick={() => receiptInput.current?.click()} disabled={scanBusy || busy} className="h-11 rounded-xl border border-emerald-900/15 px-4 text-sm font-semibold text-emerald-900 disabled:opacity-50">
-            {scanBusy ? "Reading receipt with AI…" : receipt ? "Replace receipt" : "Upload bill receipt"}
-          </button>
-          {receiptPreview && <img src={receiptPreview} alt="Uploaded bill receipt" className="h-14 w-14 rounded-lg border object-cover" />}
-          {receipt?.notes && <span className="text-xs text-amber-800">AI note: {receipt.notes}</span>}
-        </div>
-        {scanError && <p role="alert" className="text-sm text-red-700">{scanError}</p>}
-        <div className="grid gap-3 sm:grid-cols-3">
-        <label className="text-sm font-semibold">
-          Bill description
-          <input
-            required
-            value={form.merchant}
-            onChange={(e) => setForm({ ...form, merchant: e.target.value })}
-            placeholder="Dinner · Table 8"
-            className="mt-2 h-11 w-full rounded-xl border px-3"
-          />
-        </label>
-        <label className="text-sm font-semibold">
-          Payro group session
-          <select
-            required
-            value={form.group}
-            onChange={(e) => setForm({ ...form, group: e.target.value })}
-            className="mt-2 h-11 w-full rounded-xl border bg-white px-3"
+          <button
+            type="button"
+            onClick={() => receiptInput.current?.click()}
+            disabled={scanBusy || busy}
+            className="h-11 rounded-xl border border-emerald-900/15 px-4 text-sm font-semibold text-emerald-900 disabled:opacity-50"
           >
-            <option value="">Choose a group</option>
-            {q.data!.groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm font-semibold">
-          Bill total (KES)
-          <input
-            required
-            min="1"
-            step="0.01"
-            type="number"
-            value={form.amount}
-            onChange={(e) => setForm({ ...form, amount: e.target.value })}
-            placeholder="0"
-            className="mt-2 h-11 w-full rounded-xl border px-3"
-          />
-          <span className="mt-1 block text-xs font-normal text-slate-500">Whole Kenyan shillings for M-Pesa.</span>
-        </label>
+            {scanBusy
+              ? "Reading receipt with AI…"
+              : receipt
+                ? "Replace receipt"
+                : "Upload bill receipt"}
+          </button>
+          {receiptPreview && (
+            <img
+              src={receiptPreview}
+              alt="Uploaded bill receipt"
+              className="h-14 w-14 rounded-lg border object-cover"
+            />
+          )}
+          {receipt?.notes && (
+            <span className="text-xs text-amber-800">AI note: {receipt.notes}</span>
+          )}
+        </div>
+        {scanError && (
+          <p role="alert" className="text-sm text-red-700">
+            {scanError}
+          </p>
+        )}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <label className="text-sm font-semibold">
+            Bill description
+            <input
+              required
+              value={form.merchant}
+              onChange={(e) => setForm({ ...form, merchant: e.target.value })}
+              placeholder="Dinner · Table 8"
+              className="mt-2 h-11 w-full rounded-xl border px-3"
+            />
+          </label>
+          <label className="text-sm font-semibold">
+            Payro group session
+            <select
+              required
+              value={form.group}
+              onChange={(e) => setForm({ ...form, group: e.target.value })}
+              className="mt-2 h-11 w-full rounded-xl border bg-white px-3"
+            >
+              <option value="">Choose a group</option>
+              {q.data!.groups.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm font-semibold">
+            Bill total (KES)
+            <input
+              required
+              min="1"
+              step="1"
+              type="number"
+              value={form.amount}
+              onChange={(e) => setForm({ ...form, amount: e.target.value })}
+              placeholder="0"
+              className="mt-2 h-11 w-full rounded-xl border px-3"
+            />
+            <span className="mt-1 block text-xs font-normal text-slate-500">
+              Whole Kenyan shillings for M-Pesa.
+            </span>
+          </label>
         </div>
         {receipt && (
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
             <h2 className="font-semibold text-slate-900">Review AI-extracted items</h2>
-            <p className="mt-1 text-xs text-slate-500">Check each line and adjust item, quantity, service, or tax so they match the receipt.</p>
+            <p className="mt-1 text-xs text-slate-500">
+              Check each line and adjust item, quantity, service, or tax so they match the receipt.
+            </p>
             <div className="mt-3 hidden grid-cols-[1fr_90px_130px_auto] gap-2 px-3 text-[10px] font-semibold uppercase tracking-wide text-slate-500 sm:grid">
-              <span>Item</span><span>Qty</span><span>Line total (KES)</span><span></span>
+              <span>Item</span>
+              <span>Qty</span>
+              <span>Line total (KES)</span>
+              <span></span>
             </div>
             <div className="mt-3 grid gap-2">
               {items.map((item, index) => (
                 <div key={index} className="grid gap-2 sm:grid-cols-[1fr_90px_130px_auto]">
-                  <input aria-label={`Item ${index + 1} name`} value={item.name} onChange={(event) => setItems((current) => current.map((line, i) => i === index ? { ...line, name: event.target.value } : line))} className="h-10 rounded-lg border bg-white px-3 text-sm" />
-                  <input aria-label={`Item ${index + 1} quantity`} type="number" min="1" step="1" value={item.qty} onChange={(event) => setItems((current) => current.map((line, i) => i === index ? { ...line, qty: event.target.value } : line))} className="h-10 rounded-lg border bg-white px-3 text-sm" />
-                  <input aria-label={`Item ${index + 1} line total`} type="number" min="0" step="0.01" value={item.price} onChange={(event) => setItems((current) => current.map((line, i) => i === index ? { ...line, price: event.target.value } : line))} className="h-10 rounded-lg border bg-white px-3 text-sm" />
-                  <button type="button" onClick={() => setItems((current) => current.filter((_, i) => i !== index))} className="h-10 rounded-lg px-3 text-xs font-semibold text-red-700">Remove</button>
+                  <input
+                    aria-label={`Item ${index + 1} name`}
+                    value={item.name}
+                    onChange={(event) =>
+                      setItems((current) =>
+                        current.map((line, i) =>
+                          i === index ? { ...line, name: event.target.value } : line,
+                        ),
+                      )
+                    }
+                    className="h-10 rounded-lg border bg-white px-3 text-sm"
+                  />
+                  <input
+                    aria-label={`Item ${index + 1} quantity`}
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={item.qty}
+                    onChange={(event) =>
+                      setItems((current) =>
+                        current.map((line, i) =>
+                          i === index ? { ...line, qty: event.target.value } : line,
+                        ),
+                      )
+                    }
+                    className="h-10 rounded-lg border bg-white px-3 text-sm"
+                  />
+                  <input
+                    aria-label={`Item ${index + 1} line total`}
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={item.price}
+                    onChange={(event) =>
+                      setItems((current) =>
+                        current.map((line, i) =>
+                          i === index ? { ...line, price: event.target.value } : line,
+                        ),
+                      )
+                    }
+                    className="h-10 rounded-lg border bg-white px-3 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setItems((current) => current.filter((_, i) => i !== index))}
+                    className="h-10 rounded-lg px-3 text-xs font-semibold text-red-700"
+                  >
+                    Remove
+                  </button>
                 </div>
               ))}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button" onClick={() => setItems((current) => [...current, { name: "New item", qty: "1", price: "0.00" }])} className="text-xs font-semibold text-emerald-900">+ Add item</button>
+              <button
+                type="button"
+                onClick={() =>
+                  setItems((current) => [...current, { name: "New item", qty: "1", price: "0.00" }])
+                }
+                className="text-xs font-semibold text-emerald-900"
+              >
+                + Add item
+              </button>
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <label className="text-xs font-semibold">Service charge (KES)
-                <input type="number" min="0" step="0.01" value={service} onChange={(event) => setService(event.target.value)} className="mt-1 h-9 w-full rounded-lg border bg-white px-3 text-sm" />
+              <label className="text-xs font-semibold">
+                Service charge (KES)
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={service}
+                  onChange={(event) => setService(event.target.value)}
+                  className="mt-1 h-9 w-full rounded-lg border bg-white px-3 text-sm"
+                />
               </label>
-              <label className="text-xs font-semibold">Tax added (KES)
-                <input type="number" min="0" step="0.01" value={tax} onChange={(event) => setTax(event.target.value)} className="mt-1 h-9 w-full rounded-lg border bg-white px-3 text-sm" />
+              <label className="text-xs font-semibold">
+                Tax added (KES)
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={tax}
+                  onChange={(event) => setTax(event.target.value)}
+                  className="mt-1 h-9 w-full rounded-lg border bg-white px-3 text-sm"
+                />
               </label>
             </div>
             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm">
               <span>Items: {formatMoney(subtotalCents)}</span>
               <span>Service + tax: {formatMoney(serviceCents + taxCents)}</span>
-              <span className={receiptMatches ? "font-semibold text-emerald-800" : "font-semibold text-amber-800"}>
-                {receiptMatches ? "Matches bill total" : `Items and charges total ${formatMoney(subtotalCents + serviceCents + taxCents)} — reconcile before publishing`}
+              <span
+                className={
+                  receiptMatches ? "font-semibold text-emerald-800" : "font-semibold text-amber-800"
+                }
+              >
+                {receiptMatches
+                  ? "Matches bill total"
+                  : `Items and charges total ${formatMoney(subtotalCents + serviceCents + taxCents)} — reconcile before publishing`}
               </span>
             </div>
           </div>
@@ -321,9 +439,16 @@ function Bills() {
         >
           {busy ? "Publishing…" : "Publish bill"}
         </button>
-        <p className="text-xs text-slate-500">{receipt ? "Guests can claim items in Payro; unclaimed items are shared evenly until claimed." : "A receipt is optional; without one, the bill is split equally."}</p>
+        <p className="text-xs text-slate-500">
+          {receipt
+            ? "Guests can claim items in Payro; unclaimed items are shared evenly until claimed."
+            : "A receipt is optional; without one, the bill is split equally."}
+        </p>
         {message && (
-          <p role="status" className="text-sm text-emerald-900">
+          <p
+            role={messageType === "error" ? "alert" : "status"}
+            className={`text-sm ${messageType === "error" ? "text-red-700" : "text-emerald-900"}`}
+          >
             {message}
           </p>
         )}
@@ -357,4 +482,17 @@ function Bills() {
       </div>
     </RestaurantShell>
   );
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) return error.message;
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+  return fallback;
 }
