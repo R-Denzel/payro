@@ -77,6 +77,16 @@ function ExpenseDetail() {
     return p ? participantName(p, me) : "?";
   };
   const myParticipant = e.expense_participants.find((participant) => participant.user_id === me);
+  const mySelectedItemsCents = myParticipant
+    ? e.expense_items.reduce(
+        (total, item) =>
+          total +
+          (item.item_claims.some((claim) => claim.participant_id === myParticipant.id)
+            ? item.price_cents
+            : 0),
+        0,
+      )
+    : 0;
 
   async function toggleItemClaim(itemId: string, claimed: boolean) {
     setClaimBusy(itemId);
@@ -218,9 +228,22 @@ function ExpenseDetail() {
             </p>
             <div className="rounded-2xl bg-white border border-border divide-y divide-border">
               {myParticipant && (
-                <p className="px-3 pt-3 text-xs text-muted-foreground">
-                  Select the items you had. Your share updates as items are claimed.
-                </p>
+                <div className="px-3 pt-3">
+                  <p className="text-xs text-muted-foreground">
+                    Select the items you had. Your share updates as items are claimed.
+                  </p>
+                  <div
+                    className="mt-2 flex items-center justify-between rounded-2xl bg-emerald-50 px-3 py-2"
+                    aria-live="polite"
+                  >
+                    <span className="text-xs font-semibold text-emerald-900">
+                      Your selected items
+                    </span>
+                    <span className="text-sm font-bold text-emerald-900">
+                      {formatMoney(mySelectedItemsCents, e.currency)}
+                    </span>
+                  </div>
+                </div>
               )}
               {e.expense_items.map((item) => (
                 <div key={item.id} className="p-3">
